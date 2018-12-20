@@ -15,18 +15,16 @@
 # You will need to provide the initial name of the file (ie. the BaseName) in the config file but from here on out
 # the names will be pre-determined by the Imputation/Phasing pipeline
 
-	echo
-	echo ==================================
-	echo ----------------------------------
-	echo Odyssey v1.0 -- Updated 7-10-2018 
-	echo ----------------------------------
-	echo ==================================
-	echo
-
-# Call Variables from Config
+# Call Variables from Config file
 # ----------------------------
-source Programs.conf
-source Config.conf
+	source Programs.conf
+	source Config.conf
+	source .TitleSplash.txt
+
+
+# Splash Screen
+# --------------
+printf "$Logo"
 
 
 # Set Working Directory
@@ -101,3 +99,61 @@ for chr in {1..26}; do
 	$Plink_Exec --bfile ./Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2 --chr ${chr} --make-bed --out ./Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr}
 	
 done
+
+
+if [ "${DownloadDefaultRefPanel,,}" == "t" ]; then
+
+
+	# Retrieves the (default) Reference Genome from the IMPUTE Website
+	# ----------------------------------------------------------------------------------
+	# Collects the 1000Genome Reference Build from the Impute Site 
+		#(https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.html)
+		# Reference Build Specs: 1,000 Genomes haplotypes -- Phase 3 integrated variant set release in NCBI build 37 (hg19) coordinates 
+		# Ref Build Updated Aug 3 2015
+	
+		echo
+		echo
+		echo "Retrieving Default 1K Genome hg19 Ref Panel from Impute2 Website"
+		echo ----------------------------------------------------------------------------
+		echo
+		echo
+		
+		wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
+	
+	#Unzip the packaged ref panel
+	
+		echo
+		echo
+		echo "Unpackaging Ref Panel"
+		echo --------------------------
+		echo
+		echo
+		
+		tar -xzf ${WorkingDir}Reference/1000GP_Phase3.tgz -C ${WorkingDir}Reference/
+	
+	# Since untar makes an additional directory, move all the files from the 1000GP_Phase3 folder and move it into the Ref Directory
+	
+		echo
+		echo
+		echo "Cleaning Up"
+		echo ---------------
+		echo
+		echo
+		
+		mv ${WorkingDir}Reference/1000GP_Phase3/* ${WorkingDir}Reference/
+	
+	# Delete the now empty directory and the tgz zipped Ref panel
+		rmdir ${WorkingDir}Reference/1000GP_Phase3/
+		rm ${WorkingDir}Reference/1000GP_Phase3.tgz
+
+fi
+
+	
+# Termination Message
+	echo
+	echo
+	echo "Done!"
+	echo ---------
+	echo
+	echo
+	

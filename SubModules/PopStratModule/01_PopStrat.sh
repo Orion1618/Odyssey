@@ -15,17 +15,21 @@
 #======================================
 
 source PopStratConfig.conf
+source ../.TitleSplash.txt
 
 #======================================
 
 
-	echo
-	echo ==================================
-	echo ----------------------------------
-	echo Odyssey v1.0 -- Updated 7-10-2018 
-	echo ----------------------------------
-	echo ==================================
-	echo
+# Splash Screen
+# --------------
+printf "$Logo"
+
+printf "
+          ========================================
+          ----------------------------------------
+          --- Population Stratification Add-In ---
+          ----------------------------------------
+          ========================================\n\n\n"
 
 
 #Change to Working Directory then PopStrat Directory
@@ -259,7 +263,8 @@ if [ "${Analyze_PCA}" == "T" ]; then
 	echo ----------------------------------------------
 	echo
 		cp .1_Analysis_OutlierDetection.R ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R
-	
+	# Change permissions to be able to execute it		
+		chmod -f 700 ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R
 
 # Perform Pre-Analysis Check to see if all Necessary Files are Present to Perform the Analysis/Visualization
 
@@ -281,28 +286,27 @@ if [ "${Analyze_PCA}" == "T" ]; then
 				if ls ./PCA_Analyses/${PCA_Analysis_Name}/*.csv 1> /dev/null 2>&1
 				then echo "Ancestry .CSV File PRESENT"
 					# Send the All Systems Go Message:
-					echo; echo "All Necessary Files Present -- Proceeding with R Analysis/Visualization"
-				else echo "Ancestry .CSV File ABSENT -- Upload a .CSV File to the PCA Analysis Folder that Contains Individuals for R to Calculate the Centroid for Your Choosen Ancestral Group";fi
-			else echo ".Eigenvector File ABSENT -- Check PCA so it Outputs a Eigenvector File"; fi
-		else echo ".Eigenvalue File ABSENT -- Check PCA so it outputs a Eigenvalue file"; fi		
-	else echo ".R Analysis Script ABSENT -- Copy Hidden .R file from PopStrat Main Directory to PCA Analysis Folder"; fi
+					echo; printf "\n All Necessary Files Present -- Proceeding with R Analysis/Visualization"
+				else printf "Ancestry .CSV File ABSENT -- Upload a .CSV File to the PCA Analysis Folder that Contains Individuals for R to Calculate the Centroid for Your Choosen Ancestral Group \n\n  ---Exiting--- \n\n";exit;fi
+			else printf ".Eigenvector File ABSENT -- Check PCA so it Outputs a Eigenvector File \n\n  ---Exiting--- \n\n";exit; fi
+		else printf ".Eigenvalue File ABSENT -- Check PCA so it outputs a Eigenvalue file \n\n ---Exiting--- \n\n";exit; fi		
+	else printf ".R Analysis Script ABSENT -- Copy Hidden .R file from PopStrat Main Directory to PCA Analysis Folder \n\n  ---Exiting--- \n\n";exit;fi
 
 	
 	echo
 	echo 
-	echo Executing R CMD batch script to analyze and visualize the GWAS analysis
+	echo Executing Rscript batch script to analyze and visualize the GWAS analysis
 	echo ----------------------------------------------
 	echo
 	
 
-	# Executes the R CMD batch script to analyze and visualize the GWAS analysis
-		#${R_Exec}/Rscript CMD BATCH --no-save ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R
+	# Executes the Rscript to analyze and visualize the GWAS analysis
 
 		Arg1="${PopStratDir}/PCA_Analyses/${PCA_Analysis_Name}";
 		Arg2="${PC_VariancePerc}"
 		Arg3="${PC_StandardDev}"
 		
-		${R_Exec}Rscript ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R $Arg1 $Arg2 $Arg3   #> ./PCA_Analyses/${PCA_Analysis_Name}/Analysis_OutlierDetection.Rout
+		${Rscript} ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R $Arg1 $Arg2 $Arg3   #> ./PCA_Analyses/${PCA_Analysis_Name}/Analysis_OutlierDetection.Rout
 
 
 

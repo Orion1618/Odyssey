@@ -1,0 +1,89 @@
+BootStrap: docker
+From: ubuntu:latest
+
+#BootStrap: debootstrap
+#OSVersion: stable
+#MirrorURL: http://ftp.us.debian.org/debian/
+
+%post
+
+
+
+# Install Important OS Programs
+	apt update
+	apt -y upgrade
+	apt -y install wget
+	apt -y install bzip2
+	apt -y install unzip
+		#apt -y install make
+	apt -y install gcc
+	
+	
+# Install R
+	#export DEBIAN_FRONTEND=noninteractive
+	export LANG=en_US.UTF-8
+	export LC_ALL=en_US.UTF-8
+
+	apt -y install libcurl4-openssl-dev
+	apt -y install libudunits2-dev
+	apt -y install libssl-dev
+	apt -y install libxml2-dev
+	apt -y install r-base
+	apt -y install libopenblas-base
+
+		#defaults write org.R-project.R force.LANG en_US.UTF-8
+
+# Install R Packages
+
+	Rscript -e "install.packages('data.table', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+	Rscript -e "install.packages('tidyverse', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+	Rscript -e "install.packages('qqman', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+	Rscript -e "install.packages('manhattanly', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+		#Rscript -e "install.packages('openssl', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"	
+	
+	
+# Tidy Up Apt-get package manager
+	apt-get clean
+
+
+
+# Install Plink (to /usr/local/bin/)
+	
+	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/plink2_linux_x86_64_20181028.zip
+	unzip /usr/local/bin/Plink2.zip -d /usr/local/bin/
+	rm /usr/local/bin/Plink2.zip
+
+
+# Install Miniconda (to /usr/local/bin/)
+	wget --output-document=/usr/local/bin/MinicondaSetup.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+	bash /usr/local/bin/MinicondaSetup.sh -b -p /usr/local/bin/miniconda
+	rm /usr/local/bin/MinicondaSetup.sh
+
+# Temporary export Miniconda exec path to PATH to finish installation via miniconda
+
+	export PATH=/usr/local/bin/miniconda/bin:$PATH
+
+# Setup Miniconda for Bioconda
+
+	conda config --add channels defaults
+	conda config --add channels bioconda
+	conda config --add channels conda-forge
+		#conda config --add channels r
+
+# Install Odyssey Dependencies via Bioconda
+
+	conda update conda	
+	conda install -y htslib
+	conda install -y bcftools
+	conda install -y plink
+	conda install -y shapeit
+		#conda install -y R
+
+
+%environment
+	export PATH=/usr/local/bin/miniconda/bin:$PATH
+	export LANG=en_US.UTF-8
+	export LC_ALL=en_US.UTF-8
+	
+
+

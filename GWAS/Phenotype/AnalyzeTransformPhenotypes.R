@@ -19,40 +19,51 @@
 # ------------- Miscellaneous and Potentially Helpful Commands -----------------
 
   #Wholistic Scatterplot of Variables of Interest
-    scatterplotMatrix(~Diamond+Oval+Round+SqDiamond+Square, regLine=FALSE, 
-                  smooth=FALSE, ellipse=list(levels=c(.5, .9)), 
-                  diagonal=list(method="histogram"), data=Phenotypes)
+    #scatterplotMatrix(~Diamond+Oval+Round+SqDiamond+Square, regLine=FALSE, 
+                  #smooth=FALSE, ellipse=list(levels=c(.5, .9)), 
+                  #diagonal=list(method="histogram"), data=Phenotypes)
 
 
   #User Input Function -- Load Function by file itself
-    source(file.choose())
+    #source(file.choose())
+    
 
 
 
 # ------------ Function Setup ------------------
 
 #Input the File Path of the Phenotype File you Want to Analyze
-PhenotypeFilePath <- file.path(file.choose())
+	#PhenotypeFilePath <- file.path(file.choose())
+	PhenotypeFilePath <- readline("Specify the full path of the Phenotype File you Want to Check: ")
+	PhenotypeFilePath <- as.character(PhenotypeFilePath , ",")
+
 
 #Set Current Working Directory
-getwd()
-setwd(choose.dir())
+
+	#setwd(choose.dir())
+   	WorkingDir <- readline("Specify the full directory path of where your phenotype file is located: ")
+	WorkingDir <- as.character(WorkingDir , ",")
+setwd(WorkingDir)
 
 
 
 # Load the Function Below into the Global Environment
 
-AnalyzePheno <- function(PhenotypeFilePath)  {
+AnalyzePheno <- function(PhenotypeFilePath, WorkingDir)  {
+  
+  # Set Directory as that which contains the phenotype file
+    setwd(WorkingDir)
   
   # Crunch all the data to be processed by the argumentative section of the function
   
-  #Load the Libraries
+  # Load the Libraries
   
   library(data.table)
   library(tidyverse)
   library(gridExtra)
   library(rcompanion)
   library(MASS)
+  library(car)
   
   #Load the Phenotype File
   read.table(PhenotypeFilePath, header=T)->>PhenotypeFile
@@ -61,7 +72,7 @@ AnalyzePheno <- function(PhenotypeFilePath)  {
   # Calculate number of columns in table
   for(i in 1:ncol(PhenotypeFile)) 
   {
-    #Write i iteration to global environment
+    # Write i iteration to global environment
       i->>i
   
     # Return the name of the column
@@ -122,7 +133,7 @@ AnalyzePheno <- function(PhenotypeFilePath)  {
           colnames(PhenotypeFile)[i]->ColumnName
           
           # Transform the specified column as a single vector using values that range from -30 to 30 with a step size of 0.1
-          library(car)
+          
           boxCox(lm(PhenotypeFile[,i]~1), family = "yjPower", plotit = T, lambda = seq(-30,30,0.1))
           Box<- boxCox(lm(PhenotypeFile[,i]~1), family = "yjPower", plotit = F, lambda = seq(-30,30,0.1))
           
@@ -302,3 +313,5 @@ AnalyzePheno <- function(PhenotypeFilePath)  {
   cat("========================\n")
   
 }
+
+AnalyzePheno(PhenotypeFilePath, WorkingDir)
