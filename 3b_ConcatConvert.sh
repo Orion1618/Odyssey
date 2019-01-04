@@ -11,17 +11,36 @@
 
 
 
-# Call Variables from Config file
+# Source from .config files (Program options via Settings.conf & Program execs via Programs.conf)
 # ----------------------------
-	source Programs.conf
-	source Config.conf
+	
+	source Settings.conf
+	
+	# Load Odysseys Dependencies -- pick from several methods
+	if [ "${OdysseySetup,,}" == "one" ]; then
+		echo
+		printf "\n\n Loading Odyssey's Singularity Container Image \n\n"
+		source ./Configuration/Setup/Programs-Singularity.conf
+	
+	elif [ "${OdysseySetup,,}" == "two" ]; then
+		echo
+		printf "\n\n Loading Odyssey's Manually Configured Dependencies \n\n"
+		source ./Configuration/Setup/Programs-Manual.conf
+	else
+
+		echo
+		echo User Input Not Recognized -- Please specify One or Two
+		echo Exiting Dependency Loading
+		echo
+		exit
+	fi
+
 	source .TitleSplash.txt
 
 
 # Splash Screen
 # --------------
 printf "$Logo"
-
 
 # Set Working Directory
 # -------------------------------------------------
@@ -60,7 +79,7 @@ if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
 	echo It may take a while to scan all the .out files
 	echo ==============================================
 	echo
-		find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
+		find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
 	echo
 	echo ==============================================
 	echo
@@ -81,7 +100,7 @@ if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
 		echo "Outputting more details on failed file/s..."
 		echo ===========================================
 		echo
-		find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
+		find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
 		echo
 		echo ===========================================
 	
@@ -148,7 +167,7 @@ if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
 						cat $UserInput4 | sort -V | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
 						
 					# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-						find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+						find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 		
 					# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 						cat ReSubmitImputeJobs.txt | bash
@@ -168,10 +187,10 @@ if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
 					# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 					# 3,4) Sorts the .out files and subs .out for .sh to get the script
 					# 5) Within .sh should be a manual execution command that starts with '# qsub', grep finds the line and trims the off the '# ' to get the qsub command and saves it to ReSubmitPhaseJobs.txt
-						find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
+						find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
 						
 					# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-						find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+						find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 		
 					# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 						cat ReSubmitImputeJobs.txt | bash
@@ -204,7 +223,7 @@ if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
 					cat $UserInput4 | sort -V | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
 						
 				# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-					find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 					
 				# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 					cat ReSubmitImputeJobs.txt | sh
@@ -222,10 +241,10 @@ if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
 				# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 				# 3,4) Sorts the .out files and subs .out for .sh to get the script
 				# 5) Within .sh should be a manual execution command that starts with 'time ', grep finds the line and saves it to ReSubmitPhaseJobs.txt
-					find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' > ReSubmitImputeJobs.txt
+					find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' > ReSubmitImputeJobs.txt
 		
 				# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-					find ./Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 		
 				# Read the file that contains the scripts that need to be re-submitted and submit then via sh to the Linux workstation
 					cat ReSubmitImputeJobs.txt | sh
@@ -287,11 +306,11 @@ echo
 echo Creating Concat Cohort Folder within Impute Directory
 echo ----------------------------------------------
 echo
-	mkdir -p ./Impute/${BaseName}/ConcatImputation
+	mkdir -p ./3_Impute/${BaseName}/ConcatImputation
 	
 	# Use Lustre Stripping?
 	if [ "${LustreStrip}" == "T" ]; then
-		lfs setstripe -c 5 ./Impute/${BaseName}/ConcatImputation
+		lfs setstripe -c 5 ./3_Impute/${BaseName}/ConcatImputation
 	fi
 	
 	
@@ -315,13 +334,13 @@ echo
 			
 			
 			function Concat() {
-				if ls ./Impute/"$BaseName"/RawImputation/*Chr$1_*.gen 1> /dev/null 2>&1; then 
+				if ls ./3_Impute/"$BaseName"/RawImputation/*Chr$1_*.gen 1> /dev/null 2>&1; then 
 					
 					#Say what chr was concatenated
 						printf "\n\nConcatenated Chromosome $1\n\n"
 					
 					# Find all the chromosomal segments for a particular chromosome, sort them in order, replaces the first column with a chromsome number, then concatenate them to a single Chr .gen
-						find ./Impute/"$BaseName"/RawImputation/ -type f -name "*Chr$1_*.gen" |sort -V | xargs -r awk '{ $1='$1'; print }' | cat > ./Impute/"$BaseName"/ConcatImputation/"$BaseName"_Chr$1.gen 
+						find ./3_Impute/"$BaseName"/RawImputation/ -type f -name "*Chr$1_*.gen" |sort -V | xargs -r awk '{ $1='$1'; print }' | cat > ./3_Impute/"$BaseName"/ConcatImputation/"$BaseName"_Chr$1.gen 
 					
 			
 				else echo "Files for Chromosome $1 does not exist -- Skipping"
@@ -334,7 +353,7 @@ echo
 			
 			# -------- Configure GNU-Parallel (GNU Tag) --------
 				
-			# On our system gnu-parallel is loaded via a module load command specified in Config.conf under the variable $LOAD_PARALLEL
+			# On our system gnu-parallel is loaded via a module load command specified in the ./Odyssey/Configuration/Setup/*.conf file under the variable $LOAD_PARALLEL
 			# As an alternative you could simply configure GNU-Parallel manually so that calling "parallel" runs GNU-Parallel
 			# by adjusting the following lines so that GNU-Parallel runs on your system
 			
@@ -347,14 +366,13 @@ echo
 			# Exports the BaseName variable so the child process can see it
 				export BaseName
 				export -f Concat
-			
+
 			# GNU-Parallel Command: Takes all the chromosomal chunks and concatenates them in parallel
 				seq $ConcatStart $ConcatEnd | parallel --eta Concat {}
 
-			
-		
+
 		# Remove Temporary Files to Save Space
-	
+
 			if [ "${KeepTemp}" == "F" ]; then	
 
 				echo
@@ -363,7 +381,7 @@ echo
 				echo
 
 				# Delete Raw Imputation Files
-					rm -r ./Impute/"$BaseName"/RawImputation/
+					rm -r ./3_Impute/"$BaseName"/RawImputation/
 
 			else
 
@@ -372,13 +390,8 @@ echo
 				echo ---------------------------------------
 				echo 
 
-
-
 			fi
-		
 
-			
-			
 	else
 
 		echo
@@ -394,8 +407,8 @@ echo
 				echo ----------------------------------------------
 
 			#Searches for chromosome gen file/s; if exists then concatenates them; else skips the chromosome concatenation
-				if ls ./Impute/${BaseName}/RawImputation/*Chr${chr}_*gen 1> /dev/null 2>&1; then 
-					find ./Impute/${BaseName}/RawImputation/ -type f -name "*Chr${chr}_*.gen" |sort -V | xargs -r awk '{ $1='${chr}'; print }' | cat > ./Impute/${BaseName}/ConcatImputation/"$BaseName"_Chr${chr}.gen
+				if ls ./3_Impute/${BaseName}/RawImputation/*Chr${chr}_*gen 1> /dev/null 2>&1; then 
+					find ./3_Impute/${BaseName}/RawImputation/ -type f -name "*Chr${chr}_*.gen" |sort -V | xargs -r awk '{ $1='${chr}'; print }' | cat > ./3_Impute/${BaseName}/ConcatImputation/"$BaseName"_Chr${chr}.gen
 					
 				else echo "Files for Chromosome ${chr} does not exist -- Skipping"
 				
@@ -413,7 +426,7 @@ echo
 				echo
 
 				# Delete Raw Imputation Files
-					rm -r ./Impute/"$BaseName"/RawImputation/
+					rm -r ./3_Impute/"$BaseName"/RawImputation/
 
 			else
 
@@ -421,8 +434,6 @@ echo
 				echo Keeping Temporary Files
 				echo ---------------------------------------
 				echo 
-
-
 
 			fi
 	fi
@@ -457,7 +468,7 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 	echo SNPTEST only looks at ID_1 and this must be unique
 	echo ----------------------------------------------
 	echo
-	awk -F " " 'NR==1; NR==2; NR > 2{print $1"_"$2,$2,$3,$4, $5}' OFS=' ' ./Impute/${BaseName}/${BaseName}.sample > ./Impute/${BaseName}/.TempSample4SNPTEST.sample
+	awk -F " " 'NR==1; NR==2; NR > 2{print $1"_"$2,$2,$3,$4, $5}' OFS=' ' ./3_Impute/${BaseName}/${BaseName}.sample > ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
 
 	
 	
@@ -479,15 +490,15 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 			function GetInfo() {
 	
 				# Conditional statement to see if there is a Concatenated Chromosomal GEN file from which to make a SNP Report
-					if ls ./Impute/"$BaseName"/ConcatImputation/*Chr$1.gen 1> /dev/null 2>&1; then 
+					if ls ./3_Impute/"$BaseName"/ConcatImputation/*Chr$1.gen 1> /dev/null 2>&1; then 
 	
 						#Perform SNPTEST SNP Analysis
 							printf "\n\nPerforming SNP Analysis on Chromosome $1\n------------------------------\n";
 							
 							printf"\n\n Options in Effect:
-							$SNPTEST_Exec -summary_stats_only -assume_chromosome $1 -data ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.gen ./Impute/${BaseName}/${BaseName}.sample -chunk 10000 -o ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstat &> ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstatOut"
+							$SNPTEST_Exec -summary_stats_only -assume_chromosome $1 -data ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.gen ./3_Impute/${BaseName}/${BaseName}.sample -chunk 10000 -o ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstat &> ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstatOut"
 							
-							$SNPTEST_Exec -summary_stats_only -assume_chromosome $1 -data ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.gen ./Impute/${BaseName}/.TempSample4SNPTEST.sample -chunk 10000 -o ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstat &> ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstatOut
+							$SNPTEST_Exec -summary_stats_only -assume_chromosome $1 -data ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.gen ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample -chunk 10000 -o ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstat &> ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstatOut
 	
 	
 
@@ -519,7 +530,7 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 			export INFOEnd
 			
 		# GNU-Parallel Command: Takes all the chromosomal .gen files and analyzes them in parallel	
-			seq $INFOStart $INFOEnd | parallel --eta GetInfo {} "&>" ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+			seq $INFOStart $INFOEnd | parallel --eta GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
 
 	# If don't ask for parallel variant analysis then analyze in serial to get a SNP Report
 	else 
@@ -531,14 +542,14 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 		for chr in `eval echo {${INFOStart}..${INFOEnd}}`; do			
 		
 			# Conditional statement to see if there is a Concatenated Chromosomal GEN file from which to make a SNP Report
-			if ls ./Impute/${BaseName}/ConcatImputation/*Chr${chr}.gen 1> /dev/null 2>&1; then
+			if ls ./3_Impute/${BaseName}/ConcatImputation/*Chr${chr}.gen 1> /dev/null 2>&1; then
 
 			#Perform SNPTEST SNP Analysis
 				echo
 				echo Reporting SNP Statistics for Concatenated Chromosome ${chr} GEN File - Includes INFO Scores
 				echo ----------------------------------------------
 				echo
-					$SNPTEST_Exec -summary_stats_only -assume_chromosome ${chr} -data ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.gen ./Impute/${BaseName}/.TempSample4SNPTEST.sample -chunk 10000 -o ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstat &> ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstatOut
+					$SNPTEST_Exec -summary_stats_only -assume_chromosome ${chr} -data ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.gen ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample -chunk 10000 -o ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstat &> ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstatOut
 	
 			
 			
@@ -553,7 +564,7 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 	fi
 
 	# Removing Temporary Sample File that was created
-	rm ./Impute/${BaseName}/.TempSample4SNPTEST.sample
+	rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
 	
 else
 	echo
@@ -595,7 +606,7 @@ if [ "${FilterINFO}" == "T" ]; then
 			function FilterInfo() {
 	
 				# Conditional statement to see if there is a .snpstat file from which to filter variants
-					if ls ./Impute/"$BaseName"/ConcatImputation/*Chr$1.snpstat 1> /dev/null 2>&1; then 
+					if ls ./3_Impute/"$BaseName"/ConcatImputation/*Chr$1.snpstat 1> /dev/null 2>&1; then 
 	
 						#Perform SNP INFO Filteration
 							printf "\n\nPerforming SNP Filtration on Chromosome $1\n------------------------------\n";
@@ -613,17 +624,17 @@ if [ "${FilterINFO}" == "T" ]; then
 								#awk '{ if($9 >= $'$INFOThresh') { print $2}}' ./Impute/$BaseName/ConcatImputation/${BaseName}_Chr$1.snpstat > ./Impute/$BaseName/ConcatImputation/INFOFiltered_Chr$1.list
 								#awk 'FNR > 11 { if($9 >= '$INFOThresh') { print $2,$9 }}' ./Impute/$BaseName/ConcatImputation/${BaseName}_Chr$1.snpstat > ./Impute/$BaseName/ConcatImputation/INFOFiltered_Chr$1.list
 							# Output INFO filtered list that ignores # headers, scans .snpstat for INFO scores (9th column of .snpstat), and filters/outputs SNP name	
-								awk '{ if (!/#|info/ && $9 >= '$INFOThresh') { print $2 }}' ./Impute/$BaseName/ConcatImputation/${BaseName}_Chr$1.snpstat > ./Impute/$BaseName/ConcatImputation/INFOFiltered_Chr$1.list
+								awk '{ if (!/#|info/ && $9 >= '$INFOThresh') { print $2 }}' ./3_Impute/$BaseName/ConcatImputation/${BaseName}_Chr$1.snpstat > ./3_Impute/$BaseName/ConcatImputation/INFOFiltered_Chr$1.list
 							
 							# Output MOREINFO filtered list that ignores # headers, scans .snpstat for INFO scores (9th column of .snpstat), and filters/outputs SNP name and corresponding INFO score
-								awk '{ if (!/#|info/ && $9 >= '$INFOThresh') { print $2, $9}}' ./Impute/$BaseName/ConcatImputation/${BaseName}_Chr$1.snpstat > ./Impute/$BaseName/ConcatImputation/MOREINFOFiltered_Chr$1.list
+								awk '{ if (!/#|info/ && $9 >= '$INFOThresh') { print $2, $9}}' ./3_Impute/$BaseName/ConcatImputation/${BaseName}_Chr$1.snpstat > ./3_Impute/$BaseName/ConcatImputation/MOREINFOFiltered_Chr$1.list
 
 							echo
 							echo Appending SNP Filtered Statistics to .snpstatOut
 							echo -------------------------------------------------
 			
-							TOTAL_SNPS="$(wc -l < ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstat)"
-							FILTERED_SNPS="$(wc -l < ./Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$1.list)"
+							TOTAL_SNPS="$(wc -l < ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.snpstat)"
+							FILTERED_SNPS="$(wc -l < ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$1.list)"
 			
 							echo
 							echo Total Number of Imputed Variants in Chromosome $1: $TOTAL_SNPS
@@ -660,7 +671,7 @@ if [ "${FilterINFO}" == "T" ]; then
 			export INFOEnd
 			
 		# GNU-Parallel Command: Takes all the chromosomal .gen files and analyzes them in parallel	
-			seq $INFOStart $INFOEnd | parallel --eta FilterInfo {} ">>" ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+			seq $INFOStart $INFOEnd | parallel --eta FilterInfo {} ">>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
 
 	
 	
@@ -676,7 +687,7 @@ if [ "${FilterINFO}" == "T" ]; then
 		for chr in `eval echo {${INFOStart}..${INFOEnd}}`; do			
 		
 			# Conditional statement to see if there is a .snpstat file from which to filter variants
-			if ls ./Impute/"$BaseName"/ConcatImputation/*Chr${chr}.snpstat 1> /dev/null 2>&1; then
+			if ls ./3_Impute/"$BaseName"/ConcatImputation/*Chr${chr}.snpstat 1> /dev/null 2>&1; then
 
 				#Perform SNP INFO Filteration
 					printf "\n\nPerforming SNP Filtration on Chromosome ${chr} \n------------------------------\n";
@@ -691,10 +702,10 @@ if [ "${FilterINFO}" == "T" ]; then
 					echo ----------------------------------------------
 
 					# Output INFO filtered list that ignores # headers, scans .snpstat for INFO scores (9th column of .snpstat), and filters/outputs SNP name	
-					awk '{ if (!/#|info/ && $9 >= $INFOThresh) { print $2 }}' ./Impute/$BaseName/ConcatImputation/${BaseName}_Chr${chr}.snpstat > ./Impute/$BaseName/ConcatImputation/INFOFiltered_Chr${chr}.list
+					awk '{ if (!/#|info/ && $9 >= $INFOThresh) { print $2 }}' ./3_Impute/$BaseName/ConcatImputation/${BaseName}_Chr${chr}.snpstat > ./3_Impute/$BaseName/ConcatImputation/INFOFiltered_Chr${chr}.list
 							
 					# Output MOREINFO filtered list that ignores # headers, scans .snpstat for INFO scores (9th column of .snpstat), and filters/outputs SNP name and corresponding INFO score
-					awk '{ if (!/#|info/ && $9 >= $INFOThresh) { print $2, $9}}' ./Impute/$BaseName/ConcatImputation/${BaseName}_Chr${chr}.snpstat > ./Impute/$BaseName/ConcatImputation/MOREINFOFiltered_Chr${chr}.list
+					awk '{ if (!/#|info/ && $9 >= $INFOThresh) { print $2, $9}}' ./3_Impute/$BaseName/ConcatImputation/${BaseName}_Chr${chr}.snpstat > ./3_Impute/$BaseName/ConcatImputation/MOREINFOFiltered_Chr${chr}.list
 
 
 				
@@ -703,12 +714,12 @@ if [ "${FilterINFO}" == "T" ]; then
 				echo Appending SNP Filtered Statistics to .snpstatOut
 				echo -------------------------------------------------
 			
-				TOTAL_SNPS="$(wc -l < ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstat)"
-				FILTERED_SNPS="$(wc -l < ./Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr${chr}.list)"
+				TOTAL_SNPS="$(wc -l < ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstat)"
+				FILTERED_SNPS="$(wc -l < ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr${chr}.list)"
 			
 				
-				printf "\n\nTotal Number of Imputed Variants in Chromosome ${chr}: $TOTAL_SNPS\n\n" >> ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstatOut
-				printf "\n\nFiltered Number of Imputed Variants in Chromosome ${chr}: $FILTERED_SNPS\n\n" >> ./Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstatOut
+				printf "\n\nTotal Number of Imputed Variants in Chromosome ${chr}: $TOTAL_SNPS\n\n" >> ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstatOut
+				printf "\n\nFiltered Number of Imputed Variants in Chromosome ${chr}: $FILTERED_SNPS\n\n" >> ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${chr}.snpstatOut
 				
 							
 
@@ -723,7 +734,7 @@ if [ "${FilterINFO}" == "T" ]; then
 	fi
 
 	# Removing Temporary Sample File that was created
-	rm ./Impute/${BaseName}/.TempSample4SNPTEST.sample
+	rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
 	
 else
 	echo
@@ -801,9 +812,9 @@ if [ "${Convert2VCF}" == "T" ]; then
 					# Runs Plink to convert the concatenated GEN to a VCF 4.3
 						time ${Plink2_Exec} \
 						--gen $1 \
-						--sample ./Impute/${BaseName}/${BaseName}.sample \
+						--sample ./3_Impute/${BaseName}/${BaseName}.sample \
 						--export vcf vcf-dosage=GP \
-						--extract ./Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$FetchChr.list\
+						--extract ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$FetchChr.list\
 						--memory 2000 require \
 						--out $1
 	
@@ -832,7 +843,7 @@ if [ "${Convert2VCF}" == "T" ]; then
 
 
 			# GNU-Parallel Command: Takes all the chromosomal segments and converts them in parallel
-				parallel --eta ConvertSegments {} ::: ./Impute/${BaseName}/ConcatImputation/*.gen
+				parallel --eta ConvertSegments {} ::: ./3_Impute/${BaseName}/ConcatImputation/*.gen
 
 	else
 
@@ -842,7 +853,7 @@ if [ "${Convert2VCF}" == "T" ]; then
 		
 		# Run the Conversion in Serial
 			# Find all gens in the directory, and return array of gens with absolute path.
-				allGens=$"`find ./Impute/${BaseName}/RawImputation -name '*gen' -type f -maxdepth 1 |sort -V `"
+				allGens=$"`find ./3_Impute/${BaseName}/RawImputation -name '*gen' -type f -maxdepth 1 |sort -V `"
 				
 				echo $allGens
 				echo
@@ -866,9 +877,9 @@ if [ "${Convert2VCF}" == "T" ]; then
 					# Runs Plink to convert the concatenated GEN to a VCF 4.3
 						time ${Plink2_Exec} \
 						--gen ${gen} \
-						--sample ./Impute/${BaseName}/${BaseName}.sample \
+						--sample ./3_Impute/${BaseName}/${BaseName}.sample \
 						--oxford-single-chr $FetchChr \
-						--extract ./Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$FetchChr.list \
+						--extract ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$FetchChr.list \
 						--export vcf vcf-dosage=GP \
 						--memory 2000 require \
 						--out $gen
@@ -908,25 +919,25 @@ if [ "${MergeVCF}" == "T" ]; then
 
 
 	# Conditional statement to find if there are files to concatenate for the currently iterated chromosome
-		if ls ./Impute/${BaseName}/ConcatImputation/*.vcf 1> /dev/null 2>&1; then
+		if ls ./3_Impute/${BaseName}/ConcatImputation/*.vcf 1> /dev/null 2>&1; then
 
 	# If there are .vcf files to concatenate then list them (in order) on the screen
 		echo
 		echo Concatenating the following VCF files using BCFTools:
 		echo ----------------------------------------------
-		ls -1av ./Impute/${BaseName}/ConcatImputation/*.vcf
+		ls -1av ./3_Impute/${BaseName}/ConcatImputation/*.vcf
 		echo ----------------------------------------------
-		echo ...to ./Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf -- denoted to put it first alphabetically
+		echo ...to ./3_Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf -- denoted to put it first alphabetically
 		echo
 	
 	# Set List entries as a variable
 		VCF2Merge="$(find ./Impute/${BaseName}/ConcatImputation/ -maxdepth 1 -type f -name "*.vcf" |sort -V)"
 
 	# Use BCFTools to Merge the VCF Files Listed in the variable
-		time ${bcftools} concat --threads ${ConcatThreads} ${VCF2Merge} --output-type z --output ./Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf.gz
+		time ${bcftools} concat --threads ${ConcatThreads} ${VCF2Merge} --output-type z --output ./3_Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf.gz
 
 	# Change Permission so the cat script can access it
-		chmod -f 700 ./Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf.gz || true
+		chmod -f 700 ./3_Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf.gz || true
 		
 
 # Otherwise if there are no files to concatenate for the currently iterated chromosome then say so	

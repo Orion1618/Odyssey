@@ -15,10 +15,30 @@
 # You will need to provide the initial name of the file (ie. the BaseName) in the config file but from here on out
 # the names will be pre-determined by the Imputation/Phasing pipeline
 
-# Call Variables from Config file
+# Source from .config files (Program options via Settings.conf & Program execs via Programs.conf)
 # ----------------------------
-	source Programs.conf
-	source Config.conf
+	
+	source Settings.conf
+	
+	# Load Odysseys Dependencies -- pick from several methods
+	if [ "${OdysseySetup,,}" == "one" ]; then
+		echo
+		printf "\n\n Loading Odyssey's Singularity Container Image \n\n"
+		source ./Configuration/Setup/Programs-Singularity.conf
+	
+	elif [ "${OdysseySetup,,}" == "two" ]; then
+		echo
+		printf "\n\n Loading Odyssey's Manually Configured Dependencies \n\n"
+		source ./Configuration/Setup/Programs-Manual.conf
+	else
+
+		echo
+		echo User Input Not Recognized -- Please specify One or Two
+		echo Exiting Dependency Loading
+		echo
+		exit
+	fi
+
 	source .TitleSplash.txt
 
 
@@ -42,14 +62,14 @@ echo ${WorkingDir}
 echo
 echo Creating Project Folder within Target Directory
 echo
-	mkdir -p ./Target/${BaseName}
+	mkdir -p ./1_Target/${BaseName}
 
 
 # Move Data from 'PLACE_NEW_PROJECT_TARGET_DATA_HERE' folder into Project Directory
 # ----------------------------------------------------------------------------------
 
 # Look into the PLACE_NEW_PROJECT_TARGET_DATA_HERE Folder and record the name of the Plink dataset
-Cohort_InputFileName="$(ls ./Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/*.bim | awk -F/ '{print $NF}'| awk -F'.' '{print $1}')"
+Cohort_InputFileName="$(ls ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/*.bim | awk -F/ '{print $NF}'| awk -F'.' '{print $1}')"
 
 echo
 echo
@@ -58,12 +78,12 @@ echo ---------------------------------------------------------
 echo
 echo
 
-mv ./Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/* ./Target/${BaseName}
+mv ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/* ./1_Target/${BaseName}
 
 sleep 2
 
 # Also change the permission levels for the data in the Target Directory so it is readable, writable, and executable by the owner of the folder
-chmod -R 700 ./Target/
+chmod -R 700 ./1_Target/
 
 	
 # QC (2 Steps): this will exclude genotypes before people (prioritizing people over variants)
@@ -75,7 +95,7 @@ chmod -R 700 ./Target/
 	echo
 	echo
 	
-	${Plink_Exec} --allow-no-sex --bfile ./Target/${BaseName}/${Cohort_InputFileName} --geno 0.05 --hwe 0.000001 --maf 0.025 --make-bed --out ./Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1
+	${Plink_Exec} --allow-no-sex --bfile ./1_Target/${BaseName}/${Cohort_InputFileName} --geno ${GenoQC} --hwe ${HweQC} --maf ${MafQC} --make-bed --out ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1
 
 	echo
 	echo
@@ -84,7 +104,7 @@ chmod -R 700 ./Target/
 	echo
 	echo
 
-	${Plink_Exec} --allow-no-sex --bfile ./Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1 --mind 0.05 --make-bed --out ./Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2
+	${Plink_Exec} --allow-no-sex --bfile ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1 --mind ${MindQC} --make-bed --out ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2
 	
 	
 # Splitting BED/bim/fam by chromosome (goes through all 26 chromosomes by default)
@@ -96,7 +116,7 @@ for chr in {1..26}; do
 	echo ----------------------------------------------------------------------------
 	echo
 	echo
-	$Plink_Exec --bfile ./Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2 --chr ${chr} --make-bed --out ./Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr}
+	$Plink_Exec --bfile ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2 --chr ${chr} --make-bed --out ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr}
 	
 done
 

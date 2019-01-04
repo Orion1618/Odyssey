@@ -230,7 +230,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 	
 	fi
 	
-elif [ "${PerformFixref,,}" == "s" ]; then
+elif [ "${PerformFixref,,}" == "f" ]; then
 
 		
 	# Finally Remove any positional duplicates 
@@ -275,20 +275,21 @@ if [ "${DataVisualization,,}" == "t" ]; then
 	# Executes the Rscript to analyze and visualize the GWAS analysis
 
 		Arg6="${WorkingDir}";
-		Arg7="${Plink_Exec}";
-		
+		Arg7="${X11}";
 
-		
 		${Rscript} ./1_Target/.1_PreGWAS-QC.R $Arg6 $Arg7
-		
 
-		
-	
-		
+	# Copy the Analysis Data to the Quick Results Folder
+		echo
+		echo
+		echo "Copying Analysis Data and Visualizations to Quick Results Folder"
+		echo ------------------------------------------------------------------
+		cp -R ${WorkingDir}1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization ${WorkingDir}5_QuickResults/${BaseName}/
 
 elif [ "${DataVisualization,,}" == "f" ]; then
 
-echo $Plink_Exec
+	echo "Skipping Data Visualization and QC"
+	echo ----------------------------------------------
 
 else
 

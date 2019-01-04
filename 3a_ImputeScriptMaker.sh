@@ -11,10 +11,30 @@
 ## ==========================================================================================
 
 
-# Call Variables from Config file
+# Source from .config files (Program options via Settings.conf & Program execs via Programs.conf)
 # ----------------------------
-	source Programs.conf
-	source Config.conf
+	
+	source Settings.conf
+	
+	# Load Odysseys Dependencies -- pick from several methods
+	if [ "${OdysseySetup,,}" == "one" ]; then
+		echo
+		printf "\n\n Loading Odyssey's Singularity Container Image \n\n"
+		source ./Configuration/Setup/Programs-Singularity.conf
+	
+	elif [ "${OdysseySetup,,}" == "two" ]; then
+		echo
+		printf "\n\n Loading Odyssey's Manually Configured Dependencies \n\n"
+		source ./Configuration/Setup/Programs-Manual.conf
+	else
+
+		echo
+		echo User Input Not Recognized -- Please specify One or Two
+		echo Exiting Dependency Loading
+		echo
+		exit
+	fi
+
 	source .TitleSplash.txt
 
 
@@ -43,7 +63,7 @@ echo ${WorkingDir}
 # Perform Error Analysis on Phasing Step -- grep looks for .out files containing 'Killed', 'Aborted', 'segmentation', or 'error'
 # -----------------------------
 
-if [ "${PhasingErrorAnalysis}" == "T" ]; then
+if [ "${PhasingErrorAnalysis,,}" == "t" ]; then
 
 	echo
 	echo --------------------------------------------------------
@@ -55,7 +75,7 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 	echo It may take a while to scan all the .out files
 	echo ==============================================
 	echo
-	find ./Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
+	find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
 	echo
 	echo ==============================================
 	echo
@@ -64,31 +84,31 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 	echo
 	echo "The files listed above appeared to have failed." 
 	echo "Would you like more details on why they failed (this will print the line that contains the error for each failed file)?"
-	echo "(yes/no)?"
+	echo "(y/n)?"
 	echo --------------------------------------------------
 	read UserInput1
 	echo
 	echo
 	
-	if [ "${UserInput1}" == "yes" ]; then
+	if [ "${UserInput1}" == "y" ]; then
 		
 		echo
 		echo "Outputting more details on failed file/s..."
 		echo ===========================================
 		echo
-		find ./Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
+		find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
 		echo
 		echo ===========================================
 	
 	else
-		if [ "${UserInput1}" == "no" ]; then
+		if [ "${UserInput1,,}" == "n" ]; then
 		
 		echo "Alright, will not output more details on failed file/s"
 		echo =========================================================
 		echo
 
 		else
-			echo "Input not recognized -- specify either 'yes' or 'no' -- exiting Error Analysis"
+			echo "Input not recognized -- specify either 'y' or 'n' -- exiting Error Analysis"
 			echo ================================================================================
 			echo
 		fi
@@ -97,15 +117,39 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 # Re-submit the failed scripts
 	echo
 	echo "Would you like to resubmit the failed scripts?" 
-	echo "Script/s will be submitted to an HPS if specified in Conf.conf otherwise will submit via a simple 'sh' command"
-	echo "(yes/no)?"
+	echo "Script/s will be submitted to an HPS if specified in Settings.conf otherwise will submit via a simple 'sh' command"
+	echo "(y/n)?"
 	echo --------------------------------------------------
 	read UserInput2
 	echo
 	echo
 	
-	if [ "${UserInput2}" == "yes" ]; then
+	if [ "${UserInput2,,}" == "y" ]; then
 		
+		# Specify text document of failed scripts to re-run; manual script re-submission
+		echo
+		echo "Normally ALL the failed scripts will be re-submitted" 
+		echo "However, you can provide a text doc that contains a list of the scripts you would like re-submitted"
+		echo "Would you prefer to manually provide this list?"
+		echo "Note: The file should contain the full path to the automatically created scripts you want re-submitted"
+		echo "Note: Each script should be listed on a new line of the text document"
+		echo "(y/n)?"
+		echo --------------------------------------------------
+		read UserInput3
+		echo
+		echo
+			if [ "${UserInput3,,}" == "y" ]; then
+				echo "You Said Yes to Manual Script Submission So Please Provide the Full Path to the Re-Submission Text Doc"
+				read UserInput4
+				echo "Using Text Doc: ${UserInput4} for manual script submission"
+			
+			elif [ "${UserInput3}" == "n" ]; then
+					echo
+			else 
+				echo "User Input not recognized -- please specify 'y' or 'n' -- ignoring input"
+				
+			fi
+			
 		if [ "${HPS_Submit,,}" == "t" ]; then
 
 		
@@ -118,13 +162,13 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 			# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 			# 3,4) Sorts the .out files and subs .out for .sh to get the script
 			# 5) Within .sh should be a manual execution command that starts with '# qsub', grep finds the line and trims the off the '# ' to get the qsub command and saves it to ReSubmitPhaseJobs.txt
-				find ./Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
+				find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
 				
 				# Manually read in scripts that need to be re-run (comment out previous command if you want to use this manual override				
-					#cat Scripts2Resubmit.txt | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
+					#cat ./2_Phase/${BaseName}/Scripts2Resubmit.txt | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
 			
 			# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-				find ./Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+				find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 		
 			# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 				cat ReSubmitPhaseJobs.txt | bash
@@ -146,10 +190,10 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 			# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 			# 3,4) Sorts the .out files and subs .out for .sh to get the script
 			# 5) Within .sh should be a manual execution command that starts with 'time ', grep finds the line and saves it to ReSubmitPhaseJobs.txt
-				find ./Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' > ReSubmitPhaseJobs.txt
+				find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' > ReSubmitPhaseJobs.txt
 		
 			# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-				find ./Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+				find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 		
 			# Read the file that contains the scripts that need to be re-submitted and submit then via sh to the Linux workstation
 				cat ReSubmitPhaseJobs.txt | sh
@@ -165,7 +209,7 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 			
 	
 	else
-		if [ "${UserInput2}" == "no" ]; then
+		if [ "${UserInput2,,}" == "n" ]; then
 		
 		echo "Alright, will not Re-Submit Failed Script/s"
 		echo ==============================================
@@ -173,7 +217,7 @@ if [ "${PhasingErrorAnalysis}" == "T" ]; then
 		echo
 
 		else
-			echo "Input Not Recognized -- Specify Either 'yes' or 'no' -- Exiting Re-Submission"
+			echo "Input Not Recognized -- Specify Either 'y' or 'n' -- Exiting Re-Submission"
 			echo ==============================================================================
 			echo
 			echo
@@ -193,23 +237,23 @@ fi
 	
 printf "\nCreating Imputation Project Folder within Impute Directory \n"
 
-	mkdir -p ./Impute/${BaseName}
+	mkdir -p ./3_Impute/${BaseName}
 	
 	# Use Lustre Stripping?
 	if [ "${LustreStrip,,}" == "t" ]; then
 
-		lfs setstripe -c 5 ./Impute/${BaseName}
+		lfs setstripe -c 5 ./3_Impute/${BaseName}
 
 	fi
 
-	mkdir -p ./Impute/${BaseName}/Scripts2Impute
-	mkdir -p ./Impute/${BaseName}/RawImputation
+	mkdir -p ./3_Impute/${BaseName}/Scripts2Impute
+	mkdir -p ./3_Impute/${BaseName}/RawImputation
 
 
 # Generate a properly formatted Sample file from Shapeit2 output to be used with Impute4
 
 #Get a single sample file from the Phase folder
-SHAPEIT_SAMPLE_FILE="$(ls ./Phase/${BaseName}/*.sample | head -1)"
+SHAPEIT_SAMPLE_FILE="$(ls ./2_Phase/${BaseName}/*.sample | head -1)"
 
 echo
 echo Modifying Sample File: 
@@ -217,7 +261,7 @@ echo $SHAPEIT_SAMPLE_FILE
 echo to be used with Impute4
 echo -----------------------------------
 echo
-awk 'BEGIN{FS=" "}{print $1,$2,$3,$6}' OFS=' ' $SHAPEIT_SAMPLE_FILE > ./Impute/${BaseName}/${BaseName}.sample
+awk 'BEGIN{FS=" "}{print $1,$2,$3,$6}' OFS=' ' $SHAPEIT_SAMPLE_FILE > ./3_Impute/${BaseName}/${BaseName}.sample
 
 
 # ---------------------------------------------
@@ -275,36 +319,33 @@ echo "#!/bin/bash
 
 cd ${WorkingDir}
 
-# Impute Command to Impute Chromosome
-	# Manual Command to Run:
-	# qsub -l nodes=1:ppn=1,vmem=${Max_Memory}gb,walltime=${ImputeWalltime} -M ${Email} -m a -j oe -o ${WorkingDir}Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out -N IChr${chr}_ck${chunk}_${BaseName} ./Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
+# Impute Manual Command Used to re-run autosomal imputation in case of failure
+	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out -N IChr${chr}_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
 
 
-# Impute 4
-	# Currently enabled to impute the autosomal chromosomes
+# Impute 4 Automatic Command -- Currently enabled to impute the autosomal chromosomes
 time ${Impute_Exec4} \
--g ./Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps \
--s ./Impute/${BaseName}/${BaseName}.sample \
+-g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps \
+-s ./3_Impute/${BaseName}/${BaseName}.sample \
 -m ./Reference/${GeneticMap} \
 -h ./Reference/${HapFile} \
 -l ./Reference/${LegendFile} \
 -int ${startchr} ${endchr} \
 -maf_align -Ne 20000 \
--o ./Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}_Chunk${chunk}
+-o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}_Chunk${chunk}
 
-# Legacy Impute2
-	# Currently disabled to impute the autosomal chromosomes
+# Legacy Impute 2 Automatic Command -- Currently disabled to impute the autosomal chromosomes
 	# Remove the hashtag from the Impute2 command below and comment out (include a hastag before) the Impute4 command above to run Impute2 for the autosomal chromosomes
 
 #time ${Impute_Exec2} \
--known_haps_g ./Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps \
--sample_g ./Impute/${BaseName}/${BaseName}.sample \
+-known_haps_g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps \
+-sample_g ./3_Impute/${BaseName}/${BaseName}.sample \
 -m ./Reference/${GeneticMap} \
 -h ./Reference/${HapFile} \
 -l ./Reference/${LegendFile} \
 -int ${startchr} ${endchr} \
 -Ne 20000 \
--o ./Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}_Chunk${chunk}" > ./Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
+-o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}_Chunk${chunk}" > ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
 
 
 				start=${endchr};
@@ -320,13 +361,13 @@ time ${Impute_Exec4} \
 						echo
 						echo Submitting Impute script to HPC Queue
 						echo
-						qsub -l nodes=1:ppn=1,vmem=${Max_Memory}gb,walltime=${ImputeWalltime} -M ${Email} -m a -j oe -o ${WorkingDir}Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out -N IChr${chr}_ck${chunk}_${BaseName} ./Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
+						qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out -N IChr${chr}_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
 					else
 		
 						echo
 						echo Submitting Impute script to Desktop Queue
 						echo
-						sh ./Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh > ${WorkingDir}Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out
+						sh ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh > ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out
 
 			
 					fi	
@@ -395,35 +436,35 @@ echo "#!/bin/bash
 
 cd ${WorkingDir}
 
-# Impute Command to Impute X Chromosome
-	# Manual Command to Run:
-	# qsub -l nodes=1:ppn=1,vmem=${Max_Memory}gb,walltime=${ImputeWalltime} -M ${Email} -m a -j oe -o ${WorkingDir}Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out -N IChr23_ck${chunk}_${BaseName} ./Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
+# Impute Manual Command Used to re-run X chromosome imputation in case of failure
+	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out -N IChr23_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
 
-#Impute4 X chromosome command (currently non functional with the Nonpar X)
+# Impute 4 X chromosome Automatic Command -- Currently enabled to impute the X chromosome
 
 time ${Impute_Exec4} \
 -chrX \
--g ./Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps \
--s ./Impute/${BaseName}/${BaseName}.sample \
+-g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps \
+-s ./3_Impute/${BaseName}/${BaseName}.sample \
 -m ./Reference/${XGeneticMap} \
 -h ./Reference/${XHapFile} \
 -l ./Reference/${XLegendFile} \
 -int ${startchr} ${endchr} \
 -maf_align \
--o ./Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23_Chunk${chunk}
+-o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23_Chunk${chunk}
 
 
-#Legacy Impute2 file (functional with the Nonpar X)
+# Legacy Impute 2 Automatic Command -- Currently disabled to impute the X chromosome
+	# Remove the hashtag from the Impute2 command below and comment out (include a hastag before) the Impute4 command above to run Impute2 for the X chromosome
 
 #time ${Impute_Exec2} \
 -chrX \
--known_haps_g ./Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps \
--sample_g ./Impute/${BaseName}/${BaseName}.sample \
+-known_haps_g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps \
+-sample_g ./3_Impute/${BaseName}/${BaseName}.sample \
 -m ./Reference/${XGeneticMap} \
 -h ./Reference/${XHapFile} \
 -l ./Reference/${XLegendFile} \
 -int ${startchr} ${endchr} \
--o ./Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23_Chunk${chunk}.gen" > ./Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
+-o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23_Chunk${chunk}.gen" > ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
 
 			start=${endchr};
 	
@@ -437,13 +478,13 @@ time ${Impute_Exec4} \
 					echo
 					echo Submitting Impute script to HPC Queue
 					echo
-					qsub -l nodes=1:ppn=1,vmem=${Max_Memory}gb,walltime=${ImputeWalltime} -M ${Email} -m a -j oe -o ${WorkingDir}Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out -N IChr23_ck${chunk}_${BaseName} ./Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
+					qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out -N IChr23_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
 				elif [ "${HPS_Submit,,}" == "f" ]; then
 				
 					echo
 					echo Submitting Impute script to Desktop Queue
 					echo
-					sh ./Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh > ${WorkingDir}Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out
+					sh ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh > ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out
 
 				else
 				
@@ -473,7 +514,7 @@ time ${Impute_Exec4} \
 	fi	
 fi
 
-printf "\nPhew! Done! \n\n"
+printf "\n\nPhew! Done!\n--------\n\n"
 
 
 
