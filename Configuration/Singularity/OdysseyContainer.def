@@ -1,12 +1,22 @@
 BootStrap: docker
 From: ubuntu:latest
 
-#BootStrap: debootstrap
-#OSVersion: stable
-#MirrorURL: http://ftp.us.debian.org/debian/
+## ===========================================================
+## Instructions:
+## On a Linux (ubuntu) system that has Singularity installed
+## perform a Singularity Build command with this Singularity
+## definition file
+##
+## Build Command Sandbox Build (interact with folders):
+	# sudo singularity build --sandbox Odyssey OdysseyDefF.def
+## Remove the Sandbox Container: sudo rm -rf Odyssey
+## Build Command:
+	# sudo singularity build Odyssey.sif OdysseyDefF.def
+## Test Installation Command:
+	# singularity exec ./Odyssey snptest -help
+## ===========================================================
 
 %post
-
 
 
 # Install Important OS Programs
@@ -17,51 +27,93 @@ From: ubuntu:latest
 	apt -y install unzip
 		#apt -y install make
 	apt -y install gcc
+	apt -y install gnustep-base-runtime
+	apt -y install locales
 	
 	
-# Install R
-	#export DEBIAN_FRONTEND=noninteractive
+# Export language preferences
+	locale-gen en_US.UTF-8
+
 	export LANG=en_US.UTF-8
 	export LC_ALL=en_US.UTF-8
+	defaults write org.R-project.R force.LANG en_US.UTF-8	
+
+# Install R dependencies
 
 	apt -y install libcurl4-openssl-dev
 	apt -y install libudunits2-dev
 	apt -y install libssl-dev
 	apt -y install libxml2-dev
+	apt -y install xorg
+	apt -y install libx11-dev
+	apt -y install libcairo2-dev
+	apt -y install libmagick++-dev
+
+	
+
+# Install R itself
+	
 	apt -y install r-base
 	apt -y install libopenblas-base
 
-		#defaults write org.R-project.R force.LANG en_US.UTF-8
 
 # Install R Packages
 
-	Rscript -e "install.packages('data.table', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
-	Rscript -e "install.packages('tidyverse', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
-	Rscript -e "install.packages('qqman', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
-	Rscript -e "install.packages('manhattanly', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+	#Rscript -e "install.packages(c('rgl', 'gdtools'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+
+	Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','scales','ggplot2','car', 'MASS','gridExtra', 'rcompanion'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
 		#Rscript -e "install.packages('openssl', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"	
 	
-	
+
 # Tidy Up Apt-get package manager
+	
 	apt-get clean
 
 
-
-# Install Plink (to /usr/local/bin/)
+# Install Plink2 (to /usr/local/bin/)
 	
-	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/plink2_linux_x86_64_20181028.zip
+	# Download from site
+	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/plink2_linux_x86_64_20190102.zip
+	
+	# Unpack	
 	unzip /usr/local/bin/Plink2.zip -d /usr/local/bin/
+	
+	# Remove the installation Clutter
 	rm /usr/local/bin/Plink2.zip
 
 
+# Install SNPTEST (to /usr/local/bin/)
+	
+	# Download from site
+	wget --output-document=/usr/local/bin/SNPTEST.tgz http://www.well.ox.ac.uk/~gav/resources/snptest_v2.5.4-beta3_linux_x86_64_dynamic.tgz
+	
+	# Unpack	
+	tar -xvzf /usr/local/bin/SNPTEST.tgz -C /usr/local/bin/
+	
+	# Set the stupid permission	
+	chmod -R 775 /usr/local/bin/snptest_v2.5.4-beta3_linux_x86_64_dynamic/
+	
+	# Move executable to PATH directory	
+	mv /usr/local/bin/snptest_v2.5.4-beta3_linux_x86_64_dynamic/snptest_v2.5.4-beta3 /usr/local/bin/snptest
+	
+	# Remove the installation Clutter
+	rm /usr/local/bin/SNPTEST.tgz
+
+
 # Install Miniconda (to /usr/local/bin/)
+	# Download from site
 	wget --output-document=/usr/local/bin/MinicondaSetup.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+	
+	# Congigure
 	bash /usr/local/bin/MinicondaSetup.sh -b -p /usr/local/bin/miniconda
+	
+	# Remove the installation Clutter
 	rm /usr/local/bin/MinicondaSetup.sh
 
 # Temporary export Miniconda exec path to PATH to finish installation via miniconda
 
 	export PATH=/usr/local/bin/miniconda/bin:$PATH
+
 
 # Setup Miniconda for Bioconda
 
@@ -70,6 +122,7 @@ From: ubuntu:latest
 	conda config --add channels conda-forge
 		#conda config --add channels r
 
+
 # Install Odyssey Dependencies via Bioconda
 
 	conda update conda	
@@ -77,10 +130,12 @@ From: ubuntu:latest
 	conda install -y bcftools
 	conda install -y plink
 	conda install -y shapeit
+	conda install -y impute2
 		#conda install -y R
 
 
 %environment
+
 	export PATH=/usr/local/bin/miniconda/bin:$PATH
 	export LANG=en_US.UTF-8
 	export LC_ALL=en_US.UTF-8
