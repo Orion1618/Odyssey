@@ -29,7 +29,7 @@ Download Odyssey via Github:
 ------------------------
 1) On the Odyssey Github page navigate to the Github Release tab
 
-The release should have 3 files for download: OdysseyContainer.sif.gz + Source code (zip) + Source code (tar.gz)
+	The release should have 3 files for download: OdysseyContainer.sif.gz + Source code (zip) + Source code (tar.gz)
 
 2) Download and extract the Source code to your working directory
 
