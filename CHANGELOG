@@ -1,1 +1,16 @@
+===========
 Changelog:
+===========
+
+
+Work-in-Progress:
+--------------------
+Configuring sub-modules so that the user does not have to specifically reference dependency paths
+
+
+Program History:
+-----------------
+
+1/6/2019 [v2.0.0] -- Addition of PopStrat Module, Phenotype Normalizer, Custom Reference Panel Creator, Addition of more configurable options, revised code syntax
+
+Pre-2019 [<v2.0.0] -- Alpha build and beta testing
