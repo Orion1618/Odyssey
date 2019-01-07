@@ -22,7 +22,7 @@ As an added reference, an Odyssey Tutorial has been provided which contains a 10
 Quick Setup
 ==============
 
-Note: It is best to use Odyssey on a system that has Singularity already installed. There are non-Singularity setup methods of setting up Odyssey, but doing so is not recommended. A detailed explanation of Odyssey setup can be found in the following document: ./Odyssey-v[#.#.#]/Readme/Odyssey Installation Instructions.docx
+Note: It is best to use Odyssey on a system that has Singularity already installed. There are non-Singularity setup methods of setting up Odyssey, but doing so is not recommended. A detailed explanation of Odyssey setup can be found in 'Odyssey Installation Instructions.docx' found within the Readme folder
 
 Download Odyssey via Github:
 ------------------------
@@ -35,15 +35,19 @@ The release should have 3 files for download: OdysseyContainer.sif.gz + Source c
 		cd /Directory/You/Want/To/Work/From
 		unzip Odyssey-[#.#.#]
 		
-4) Download and extract the OdysseyContainer.sif.gz to the following directory: ./Odyssey-[#.#.#]/Configuration/Singularity
+4) Download and extract the OdysseyContainer.sif.gz to the Singularity directory: 
 		
 		cd ./Odyssey-[#.#.#]/Configuration/Singularity 
 		unzip OdysseyContainer.sif.gz
 		
-5) Due to licensing restrictions, you will need to download and extract the Impute4 executable to the Impute4 directory within ./Odyssey-[#.#.#]/Configuration/
+5) Due to licensing restrictions, you will need to download and extract the Impute4 executable to the Impute4 directory within Configuration
+
 	a) Request access to Impute4 here: https://jmarchini.org/impute-4/
+	
 	b) After downloading Impute4 to the Impute4 directory you will need to alter the following line in ./Configuration/Setup/Programs-Singularity.conf:
-	c) Impute_Exec4="${WorkingDir}Configuration/Impute4/impute4.1.1_r294.2";
+	
+		Impute_Exec4="${WorkingDir}Configuration/Impute4/impute4.1.1_r294.2";
+	
 	d) Replace impute4.1.1_r294.2 with the appropriate version you just downloaded
 
 6) You’re done. Start using Odyssey
@@ -85,8 +89,11 @@ Step 1: Pre-Imputation QC and Setup
 1) Once the target data has been cleaned and is deposited in the 'PLACE_NEW_PROJECT_TARGET_DATA_HERE' folder within the Target folder directory, the first script, "1_ImputeProjectSetup-QC-Split.sh" can be run from the home directory. Simply use a command prompt to navigate to the home directory (e.g. $ cd /path/to/Odyssey-v[#.#.#]/) and execute the script (e.g. $ sh 1_ImputeProjectSetup-QC-Split.sh) which will setup an Imputation Project Folder, move your Target Data into this Project Folder, and will provide a small amount of pre-imputation QC which includes (by default):
 
 	a) Filtering for individual missingness (removes individuals missing more than 5% of genomic content)
+	
 	b) Filtering for genetic variant missingness (removes variants missing in more than 5% of individuals)
+	
 	c) Filtering for minor allele frequencies (removes variants that contain a minor allele frequency of 2.5% or less)
+	
 	d) Filtering for Hardy-Weinberg Equilibrium (removes variants that have a HWE p-value of 1e-5 or below). This test is very lenient to allow for diverse target data.
 	
 2) SHAPEIT2 requires data to be split by chromosome so the last step is splitting the dataset into their respective chromsomes
@@ -96,20 +103,25 @@ Step 2: Phasing
 -----------------------
 
 1) Odyssey organizes phased data into an Imputation Project Folder created within the Phase folder. The name of this folder is specified by the Imputation Project Name variable and will contain subdirectories that house the phasing scripts, outputs, and results.
+
 2) No additional files outside of those created in Step 1 need to be created to run the Phasing step. Each step builds on the next and contains all the files necessary to run the next step. 
+
 3) Phasing is carried out using SHAPEIT2 recommended settings (shown below) and a reference data map provided by IMPUTE2 (by default) or the user.		
-	i) The SHAPEIT command has the general form: shapeit --thread [#] --input-bed [PlinkTargetBedFile] --input-map [ReferenceMapFile] --output-max [OutputPhasedName] --output-log [OutputPhasedLogName]
+	
+	a) The SHAPEIT command has the general form: shapeit --thread [#] --input-bed [PlinkTargetBedFile] --input-map [ReferenceMapFile] --output-max [OutputPhasedName] --output-log [OutputPhasedLogName]
 
 4) Phasing customization can be set via altering settings found in Settings.conf
+
 5) Phased output, logs, and scripts are deposited within the Imputation Project directory placed within the Phase directory
 
 Step 3a: Imputation
 -----------------------
 
 1) Odyssey organizes imputed data into an Imputation Project Folder created within the Impute folder. The name of this folder is specified by the Imputation Project Name variable and will contain subdirectories that house the imputation scripts, outputs, and results.
+
 2) Imputation is carried out using IMPUTE4 recommended settings using reference data (genetic, hap, and map files) provided by either IMPUTE (by default) or the user. The General IMPUTE4 command is listed below. Note that the reason why Impute2 and Impute4 are used is because Impute4 has superior speed in comparison to Impute2, but is not yet able to impute the NON-PAR regions of the X chromosome). Therefore, as of now, Impute4 is used to impute chromosomes 1-22 and Impute2 to impute the Non-Par region of the X chromosome. If using a HPC and you wish to alter the PBS settings you may do so by following the direction found directly in "3_ImputeScriptMaker.sh" itself by navigating to the "Alter Script for HPC if necessary" commented line. If you are not running on a system that has a TORQUE resource monitor then you can ignore the PBS commands as they should just be treated as commented out lines by your system
 		
-	i) impute4 -g [PhasedHapsFileFromSHAPEIT]  -s [PhasedSampleFileFromSHAPEIT] -m [ReferenceGeneticMapFile] -h [ReferenceHapsFile] -l [ReferenceLegendFile] -int [StartChromosomeChunkSegment EndChromosomeChunkSegment] -maf_align -Ne [20000] -o [OutputName]
+	a) impute4 -g [PhasedHapsFileFromSHAPEIT]  -s [PhasedSampleFileFromSHAPEIT] -m [ReferenceGeneticMapFile] -h [ReferenceHapsFile] -l [ReferenceLegendFile] -int [StartChromosomeChunkSegment EndChromosomeChunkSegment] -maf_align -Ne [20000] -o [OutputName]
 
 3) Imputation customization can be set via altering settings found in Settings.conf.
 
@@ -120,15 +132,22 @@ Step 3b: Post Imputation Cleaning and Concatenation
 -----------------------
 
 1) Since imputted files are divided by chromosome and by segment, these files must be concatenated. Odyssey does this through 3b_ConcatConvert.sh which does a simple concat command with all the imputed chromsomal segments housed within the Raw Imputation folder and re-assigns their chromosome number (which isn't explicitly assigned during imputation)
+
 2) SNPTEST then creates a SNP Report which allows the population of the Imputation QC INFO metric. This will later be used to filter the VCF file (the INFO cutoff is set to 0.3 by default, but may be adjusted in Settings.conf)
+
 3) Concatenated chromsomal .GEN files are converted to a dosage VCF file (.VCF) using Plink 2.0
+
 4) The dosage VCF files are concatenated via BCFTools
+
 5) The final output within the 'ConcatImputation' Folder contains the following:
 		
-	i.	.snpstat (SNPTEST snp report that contains several metrics on the imputed chromosome including the INFO score)
-	ii.	.snpstatOut (is a log file for SNPTEST which contains the run results from SNPTEST AND a count of the total number of variants imputed for the particular chromosome and how many are left after INFO filtering)
-	iii.	.list (a file that contains the variants within the chromosome specified that meet the INFO score requirements specified in FilterINFO 
-	iv.	Most importantly is the 1DONE_[BaseName].vcf.gz file which is the final imputation product. This dosage VCF file can be inputted into analysis programs such as Plink 2.0, SNPTEST, GenAble, etc. for further analysis
+	a)	.snpstat (SNPTEST snp report that contains several metrics on the imputed chromosome including the INFO score)
+	
+	b)	.snpstatOut (is a log file for SNPTEST which contains the run results from SNPTEST AND a count of the total number of variants imputed for the particular chromosome and how many are left after INFO filtering)
+	
+	c)	.list (a file that contains the variants within the chromosome specified that meet the INFO score requirements specified in FilterINFO 
+	
+	d)	Most importantly is the 1DONE_[BaseName].vcf.gz file which is the final imputation product. This dosage VCF file can be inputted into analysis programs such as Plink 2.0, SNPTEST, GenAble, etc. for further analysis
 
 
 Step 4: Setup GWAS Project and Run GWAS Analysis
@@ -139,18 +158,27 @@ The GWAS analysis is designed to perform and visualize a genotype:phenotype anal
 1) Users will need to setup a GWAS Project for the GWAS analysis by completing the GWAS Project Variables Section of Settings.conf. More specific details on how to fill out the variables are included within the Settings file itself and the tutorial, but briefly:
 	
 	a) Specify the GWAS Project Name
+	
 	b) List the Imputation Project the user wishes to analyze or manually list the path of a dosage VCF
+	
 	c) Specify the name of the covariate/phenotype file that correspond to the imputation files (which is placed in ./4_GWAS/Phenotype). 
-		Note: It is important that the user read the instructions in the Plink manual regarding the formatting of the phenotype and covariate files.
+		
+	Note: It is important that the user read the instructions in the Plink manual regarding the formatting of the phenotype and covariate files.
+	
 	d) List any additional Plink options to be run during the analysis withing the "Plink_Options" variable
 
 2) Run the '5_AutomatePlink.sh' script from the Odyssey directory
+
 3) A new GWAS Project directory should be created which upon analyis completion should contain the following:
 	
 	a) An analysis log file
+	
 	b) A QQPlot
+	
 	c) A Plotly interactive Manhattan Plot (with its Plotly dependency folder)
+	
 	d) A summary table that contains the top 10000 variants with the lowest unadjusted p-values (as well as multiple comparison corrections, effect sizes, etc.)
+	
 	e) A gzipped file that contains the raw results from Plink
 	
 
@@ -163,13 +191,20 @@ Population Stratification Analysis
 -----------------------------
 
 Odyssey is capable of performing an Eigensoft-like analysis to assess a datasets ancestry structure using reference datasets such as the 1000 Genomes or HGDP datasets. Follow the instructions found within 00_PopStrat_Helper.xlsx, which is an Excel file that already has 1000 Genomes and HGDP datasets pre-populated and organized. Briefly, the Population Stratification is performed as follows:
-	1) User places 2 datasets a reference dataset that contains known ancestry and a target dataset that contains ancestries that will be determined in the ./SubModules/PopStratModule/PLACE_Target-Ref_Datasets_HERE/ directory
-	2) Common genotypes are found between the 2 datasets to perform an inner-merge (i.e. the 2 datasets are merged so that only the common genotypes are retained)
-	3) Resulting dataset is pruned based on linkage disequilibrium
-	4) A PCA analysis is performed on the combined dataset
-	5) Files that contain the PCA eigenvector and eigenvalue files plus a user provided ancestry file (which is a Plink formatted ID list of reference samples that contain the ancestry the user wishes to keep) are loaded
-	6) R is then used to construct an X-dimensional centroid based on the eigenvectors of the samples that are of the ancestry the user wishes to retain. Outliers that fall outside of the X-dimensional centroid are determined based on a specified standard deviation cutoff
-	6) The output of the analysis is an interactive 3D Plotly histogram that color coordinates individuals who are deemed outliers, reference samples, and samples that should be included in the analysis. A text document specifying which individuals should be removed based on ancestry is also provided.
+
+1) User places 2 datasets a reference dataset that contains known ancestry and a target dataset that contains ancestries that will be determined in the ./SubModules/PopStratModule/PLACE_Target-Ref_Datasets_HERE/ directory
+	
+2) Common genotypes are found between the 2 datasets to perform an inner-merge (i.e. the 2 datasets are merged so that only the common genotypes are retained)
+
+3) Resulting dataset is pruned based on linkage disequilibrium
+
+4) A PCA analysis is performed on the combined dataset
+
+5) Files that contain the PCA eigenvector and eigenvalue files plus a user provided ancestry file (which is a Plink formatted ID list of reference samples that contain the ancestry the user wishes to keep) are loaded
+
+6) R is then used to construct an X-dimensional centroid based on the eigenvectors of the samples that are of the ancestry the user wishes to retain. Outliers that fall outside of the X-dimensional centroid are determined based on a specified standard deviation cutoff
+
+6) The output of the analysis is an interactive 3D Plotly histogram that color coordinates individuals who are deemed outliers, reference samples, and samples that should be included in the analysis. A text document specifying which individuals should be removed based on ancestry is also provided.
 
 
 GWAS Phenotype Normalization
