@@ -77,21 +77,19 @@ if [ "${GWASOverride,,}" == "t" ]; then
 	echo
 	echo Performing Manual GWAS File Input
 	echo ---------------------------------- 
-	echo Converting VCF Dosage file specified in Config.conf via file path to a Plink Dosage PGEN
+	echo Getting VCF Dosage file specified in Settings.conf via file path to a Plink Dosage PGEN
 	echo
 
 		VCF_Input=$ManualVCFInput
 		Sex_Input=$ManualSexInput
 		
-	cd ${WorkingDir}
-
 	
 else
 
 	echo
 	echo Performing Default GWAS File Input
 	echo ----------------------------------- 
-	echo Converting VCF Dosage File specified in Config.conf by the Imputation Project to a Plink Dosage PGEN
+	echo Getting VCF Dosage File specified in Settings.conf by the Imputation Project to a Plink Dosage PGEN
 	echo
 
 		VCF_Input=$"`find ./3_Impute/${ImputationProject2Analyze}/ConcatImputation -maxdepth 1 -type f -name '1DONE*'`"
@@ -100,116 +98,66 @@ else
 fi
 
 
-#-------------------------
-# Create Plink Script:
-#-------------------------
+# Begin Setting up the Rscript for the GWAS Analysis
+#-----------------------------------------------------
 
 
-if [ "${VCF2PGEN,,}" == "t" ]; then
+# Load all the variables that will be used to create the PGEN and or run the GWAS and visualize results
 
-	echo
-	echo Creating Script to Convert Dosage VCF to PGEN 
-	echo And also running the GWAS
-	echo ----------------------------------------------
-	echo
+# Variables to Pass to the Rscript specified in Settings.conf
+Arg6="${WorkingDir}";
+Arg7="${VCF2PGEN}";
+Arg8="${Sex_Input}";
+Arg9="${GWAS_Memory}";
+Arg10="${GWAS_Walltime}";
+Arg11="${GWASSubDir}";
+Arg12="${PLINK_OPTIONS}";
+Arg13="${GWASPhenoName}";
+Arg14="${GWAS_Threads}";
+Arg15="${GWASRunName}";
+Arg16="${BaseName}";
+Arg17="${Pheno_File}";
+# Arg8 can be blank if not converting from a VCF to a PGEN
+Arg18="${VCF_Input}";
 
 
-#Script to convert VCF to PGEN Conversion AND Specified GWAS
-#------------------------------------------------------------
+# Output to a script within the GWAS Sub Directory
 
 echo "#!/bin/bash
+
 
 # Change to Working Directory
 cd ${WorkingDir}
 
 
-# Convert VCF to PGEN
 
-time ${Plink2_Exec} \
---vcf ${VCF_Input} \
---id-delim _ \
---update-sex ${Sex_Input} col-num=5 \
---memory ${Max_Memory}000 require \
---make-pgen \
---out ./4_GWAS/Datasets/${BaseName}
+# GWAS Rscript:
+${Rscript} ./4_GWAS/.R_GWAS.R $Arg6 $Arg7 $Arg8 $Arg9 $Arg10 $Arg11 '$Arg12' $Arg13 $Arg14 $Arg15 $Arg16 $Arg17 $Arg18" > ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
-# GWAS Script:
+# Change Permission Level in Order to Run the New Script
+	chmod 744 ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
-time ${Plink2_Exec} \
-${PLINK_OPTIONS} \
---pfile ./4_GWAS/Datasets/${BaseName} \
---pheno ./4_GWAS/Phenotype/${Pheno_File} \
---pheno-name ${GWASPhenoName} \
---threads ${GWAS_Threads} \
---memory ${Max_Memory}000 require \
---out ${GWASSubDir}/${GWASRunName}
 
 ## Visualize Data Script that runs R Script
 #============================================
 
-	cd ${GWASSubDir}
+	#cd ${GWASSubDir}
 
 # Executes the Rscript to analyze and visualize the GWAS analysis
 		
-	Arg6=${GWASSubDir};
+	#Arg6=${GWASSubDir};
 		
-	{Rscript} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.R $Arg6"> ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
+	#{Rscript} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.R $Arg6"> ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
 	#Change Permission Level in Order to Run the New Script
-		chmod 744 ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
+	#	chmod 744 ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
-elif [ "${VCF2PGEN,,}" == "f" ]; then
-
-	#Script to create Specified GWAS ONLY
-	#-------------------------------------
-
-	echo
-	echo Creating Script to Run the GWAS
-	echo --------------------------------
-	echo
-
-echo "#!/bin/bash
-
-
-# Change to Working Directory
-cd ${WorkingDir}
-
-# GWAS Script:
-
-time ${Plink2_Exec} \
-${PLINK_OPTIONS} \
---pfile ./4_GWAS/Datasets/${BaseName} \
---pheno ./4_GWAS/Phenotype/${Pheno_File} \
---pheno-name ${GWASPhenoName} \
---threads ${GWAS_Threads} \
---memory ${Max_Memory}000 require \
---out ${GWASSubDir}/${GWASRunName}
-
-## Visualize Data Script that runs R Script
-#============================================
-
-	cd ${GWASSubDir}
-
-# Executes the Rscript to analyze and visualize the GWAS analysis
-
-	Arg6=${GWASSubDir};
-
-	{Rscript} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.R $Arg6
 
 	# Move GWAS Results into 5_QuickResults Folder
-	cp -R ${GWASSubDir}/${GWASRunName} ${WorkingDir}/5_QuickResults/${BaseName}/GWAS_Results/${GWASRunName}/"> ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
+	#cp -R ${GWASSubDir}/${GWASRunName} ${WorkingDir}/5_QuickResults/${BaseName}/GWAS_Results/${GWASRunName}/"> ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
 	#Change Permission Level in Order to Run the New Script
-		chmod 744 ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
-else
-
-	echo
-	echo User Input Not Recognized -- Please specify T or F
-	echo Exiting script creation
-	echo
-
-fi
 
 
 # Execute GWAS?
@@ -221,13 +169,13 @@ if [ "${ExecuteGWASScripts,,}" == "t" ]; then
 		if [ "${HPS_Submit,,}" == "t" ]; then
 
 			echo
-			echo Submitting Plink Analysis and R Visualization scripts to HPC Queue
+			echo Submitting GWAS script to HPC Queue
 			echo
-				qsub -l nodes=1:ppn=${GWAS_Threads},vmem=${Max_Memory}gb,walltime=${Max_Walltime} -M ${Email} -m ae -j oe -o ${GWASSubDir}/Plink.out -N ${GWASRunName} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
+				qsub -l nodes=1:ppn=${GWAS_Threads},vmem=${GWAS_Memory}gb,walltime=${GWAS_Walltime} -M ${Email} -m ae -j oe -o ${GWASSubDir}/GWASRunName.out1 -N ${GWASRunName} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
 		elif [ "${HPS_Submit,,}" == "f" ]; then
 			echo
-			echo Submitting Plink Analysis and R Visualization scripts to Desktop Queue
+			echo Submitting GWAS script to Desktop Queue
 			echo
 				sh ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 				

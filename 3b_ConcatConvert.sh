@@ -1,5 +1,6 @@
 #!/bin/bash 
 
+
 # Overview:
 # ==================
 
@@ -309,7 +310,7 @@ echo
 	mkdir -p ./3_Impute/${BaseName}/ConcatImputation
 	
 	# Use Lustre Stripping?
-	if [ "${LustreStrip}" == "T" ]; then
+	if [ "${LustreStrip,,}" == "t" ]; then
 		lfs setstripe -c 5 ./3_Impute/${BaseName}/ConcatImputation
 	fi
 	
@@ -368,12 +369,18 @@ echo
 				export -f Concat
 
 			# GNU-Parallel Command: Takes all the chromosomal chunks and concatenates them in parallel
-				seq $ConcatStart $ConcatEnd | parallel --eta Concat {}
-
+				if [ "${GNU_ETA,,}" == "t" ]; then
+								
+					seq $ConcatStart $ConcatEnd | parallel --eta Concat {}
+				elif [ "${GNU_ETA,,}" == "f" ]; then
+					seq $ConcatStart $ConcatEnd | parallel Concat {}
+				else
+					echo 'Input not recognized for GNU_ETA -- specify either T or F'
+				fi
 
 		# Remove Temporary Files to Save Space
 
-			if [ "${KeepTemp}" == "F" ]; then	
+			if [ "${KeepTemp,,}" == "f" ]; then	
 
 				echo
 				echo Removing Temporary Files to Save Space
@@ -418,7 +425,7 @@ echo
 			
 		# Remove Temporary Files to Save Space
 	
-			if [ "${KeepTemp}" == "F" ]; then	
+			if [ "${KeepTemp,,}" == "f" ]; then	
 
 				echo
 				echo Removing Temporary Files to Save Space
@@ -455,7 +462,7 @@ fi
 # ======================================================================================================
 # ======================================================================================================
 
-if [ "${AnalyzeINFO}" == "T" ]; then
+if [ "${AnalyzeINFO,,}" == "t" ]; then
 
 	echo
 	echo Analyzing Chromosomal Imputation Results -- Getting INFO Metrics
@@ -473,7 +480,7 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 	
 	
 	# Parallel Version of Running QCTools to get a SNP Report
-	if [ "${AnalyzeINFOParallel}" == "T" ]; then
+	if [ "${AnalyzeINFOParallel,,}" == "t" ]; then
 		
 		# Load GNU-Parallel and execute the parallel command to analyze variants in parallel
 			
@@ -529,8 +536,19 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 			export INFOStart
 			export INFOEnd
 			
-		# GNU-Parallel Command: Takes all the chromosomal .gen files and analyzes them in parallel	
-			seq $INFOStart $INFOEnd | parallel --eta GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+		# GNU-Parallel Command: Takes all the chromosomal .gen files and analyzes them in parallel
+			if [ "${GNU_ETA,,}" == "t" ]; then
+								
+				seq $INFOStart $INFOEnd | parallel --dryrun --eta GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+			
+			elif [ "${GNU_ETA,,}" == "f" ]; then
+				seq $INFOStart $INFOEnd | parallel GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+			
+			else
+				echo 'Input not recognized for GNU_ETA -- specify either T or F'
+			
+			fi
+
 
 	# If don't ask for parallel variant analysis then analyze in serial to get a SNP Report
 	else 
@@ -564,7 +582,8 @@ if [ "${AnalyzeINFO}" == "T" ]; then
 	fi
 
 	# Removing Temporary Sample File that was created
-	rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
+		[ -e ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample ] && rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
+		#rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
 	
 else
 	echo
@@ -580,7 +599,7 @@ fi
 # ======================================================================================================
 # ======================================================================================================
 
-if [ "${FilterINFO}" == "T" ]; then
+if [ "${FilterINFO,,}" == "t" ]; then
 
 	echo
 	echo Filtering Chromosomal Imputation Results by INFO Metrics
@@ -671,8 +690,21 @@ if [ "${FilterINFO}" == "T" ]; then
 			export INFOEnd
 			
 		# GNU-Parallel Command: Takes all the chromosomal .gen files and analyzes them in parallel	
-			seq $INFOStart $INFOEnd | parallel --eta FilterInfo {} ">>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+			
+			if [ "${GNU_ETA,,}" == "t" ]; then
+								
+				seq $INFOStart $INFOEnd | parallel --eta FilterInfo {} ">>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
 
+			
+			elif [ "${GNU_ETA,,}" == "f" ]; then
+				seq $INFOStart $INFOEnd | parallel FilterInfo {} ">>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+
+			
+			else
+				echo 'Input not recognized for GNU_ETA -- specify either T or F'
+			
+			fi
+			
 	
 	
 	
@@ -734,7 +766,8 @@ if [ "${FilterINFO}" == "T" ]; then
 	fi
 
 	# Removing Temporary Sample File that was created
-	rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
+	[ -e ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample ] && rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
+		#rm ./3_Impute/${BaseName}/.TempSample4SNPTEST.sample
 	
 else
 	echo
@@ -755,7 +788,7 @@ fi
 
 	
 	
-if [ "${Convert2VCF}" == "T" ]; then
+if [ "${Convert2VCF,,}" == "t" ]; then
 
 
 	
@@ -793,30 +826,30 @@ if [ "${Convert2VCF}" == "T" ]; then
 			function ConvertSegments() {
 	
 				# Conditional statement to see if there is a Concatenated Chromosomal GEN file from which to make a SNP Report
-					if ls $1 1> /dev/null 2>&1; then 
+					if ls ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.gen 1> /dev/null 2>&1; then 
 	
 
 			# Then use for to convert
 
 					# Get chromosome number from the name of the file
-						FetchChr=$(echo $1 | egrep -o --ignore-case "chr[[:digit:]]{1,2}[^[:digit:]]{1}" | egrep -o --ignore-case "[[:digit:]]{1,2}")		
+						#FetchChr=$(echo $1 | egrep -o --ignore-case "chr[[:digit:]]{1,2}[^[:digit:]]{1}" | egrep -o --ignore-case "[[:digit:]]{1,2}")		
 					
 					#If there is a concatenated GEN file to convert then convert it
 						echo Converting the following GEN file using Plink:
 						echo ----------------------------------------------
-						echo $1 being Converted 
+						echo Chr$1.gen File being Converted 
 						echo ----------------------------------------------
 						echo
 						echo
 
 					# Runs Plink to convert the concatenated GEN to a VCF 4.3
 						time ${Plink2_Exec} \
-						--gen $1 \
+						--gen ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1.gen \
 						--sample ./3_Impute/${BaseName}/${BaseName}.sample \
 						--export vcf vcf-dosage=GP \
-						--extract ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$FetchChr.list\
+						--extract ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$1.list\
 						--memory 2000 require \
-						--out $1
+						--out ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr$1
 	
 		
 					echo
@@ -824,10 +857,10 @@ if [ "${Convert2VCF}" == "T" ]; then
 					echo
 	
 
-					# Otherwise if there are no files to create a SNP Report for then say so	
+					# Otherwise if there are no files to create a SNP Report for, then say so	
 					else
 		
-						printf " \n\nNo Chromosomal GEN Files Present for $1 with which to convert -- Skipping \n"
+						printf " \n\nNo Chromosomal GEN Files Present for Chr$1 with which to convert -- Skipping \n"
 		
 		
 					fi
@@ -840,10 +873,33 @@ if [ "${Convert2VCF}" == "T" ]; then
 			export BaseName
 			export Plink2_Exec
 			export -f ConvertSegments
+			export VCFConvertStart
+			export VCFConvertEnd
 
 
 			# GNU-Parallel Command: Takes all the chromosomal segments and converts them in parallel
-				parallel --eta ConvertSegments {} ::: ./3_Impute/${BaseName}/ConcatImputation/*.gen
+			
+			if [ "${GNU_ETA,,}" == "t" ]; then
+				
+				#Auto detect .gen files and converts them to VCF -- not so good when wanting fine control
+					#parallel --eta ConvertSegments {} ::: ./3_Impute/${BaseName}/ConcatImputation/*.gen
+				# Manual control to the gen files conversion to VCF
+				seq $VCFConvertStart $VCFConvertEnd | parallel --eta ConvertSegments {} ">>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.log
+				
+			
+			
+			elif [ "${GNU_ETA,,}" == "f" ]; then
+				#Auto detect .gen files and converts them to VCF -- not so good when wanting fine control
+					#parallel ConvertSegments {} ::: ./3_Impute/${BaseName}/ConcatImputation/*.gen
+				# Manual control to the gen files conversion to VCF
+				seq $VCFConvertStart $VCFConvertEnd | parallel ConvertSegments {} ">>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.log
+
+			
+			else
+				echo 'Input not recognized for GNU_ETA -- specify either T or F'
+			
+			fi
+			
 
 	else
 
@@ -853,36 +909,37 @@ if [ "${Convert2VCF}" == "T" ]; then
 		
 		# Run the Conversion in Serial
 			# Find all gens in the directory, and return array of gens with absolute path.
-				allGens=$"`find ./3_Impute/${BaseName}/RawImputation -name '*gen' -type f -maxdepth 1 |sort -V `"
+				#allGens=$"`find ./3_Impute/${BaseName}/RawImputation -name '*gen' -type f -maxdepth 1 |sort -V `"
 				
-				echo $allGens
-				echo
-				echo
+				#echo $allGens
+				#echo
+				#echo
 				
 			# Then use for to convert
-				for gen in ${allGens[@]}
-					do
+				for gen in `eval echo {${VCFConvertStart}..${VCFConvertEnd}}`; do
+				#for gen in ${allGens[@]} do
+					
 					
 					# Get chromosome number from the name of the file
-						FetchChr=$(echo $gen | egrep -o --ignore-case "chr[[:digit:]]{1,2}[^[:digit:]]{1}" | egrep -o --ignore-case "[[:digit:]]{1,2}")
+						#FetchChr=$(echo $gen | egrep -o --ignore-case "chr[[:digit:]]{1,2}[^[:digit:]]{1}" | egrep -o --ignore-case "[[:digit:]]{1,2}")
 									
 					#If there is a concatenated GEN file to convert then convert it
 						echo Converting the following GEN file using Plink:
 						echo ----------------------------------------------
-						echo "$gen" being Converted -- Found on Chr $FetchChr
+						echo Chr"$gen".gen being Converted
 						echo ----------------------------------------------
 						echo
 						echo
 
+						
 					# Runs Plink to convert the concatenated GEN to a VCF 4.3
 						time ${Plink2_Exec} \
-						--gen ${gen} \
+						--gen ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${gen}.gen \
 						--sample ./3_Impute/${BaseName}/${BaseName}.sample \
-						--oxford-single-chr $FetchChr \
-						--extract ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr$FetchChr.list \
+						--extract ./3_Impute/${BaseName}/ConcatImputation/INFOFiltered_Chr${gen}.list\
 						--export vcf vcf-dosage=GP \
 						--memory 2000 require \
-						--out $gen
+						--out ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr${gen}
 	
 		
 					echo
@@ -915,7 +972,7 @@ fi
 # ======================================================================================================
 
 	
-if [ "${MergeVCF}" == "T" ]; then
+if [ "${MergeVCF,,}" == "t" ]; then
 
 
 	# Conditional statement to find if there are files to concatenate for the currently iterated chromosome
@@ -931,7 +988,7 @@ if [ "${MergeVCF}" == "T" ]; then
 		echo
 	
 	# Set List entries as a variable
-		VCF2Merge="$(find ./Impute/${BaseName}/ConcatImputation/ -maxdepth 1 -type f -name "*.vcf" |sort -V)"
+		VCF2Merge="$(find ./3_Impute/${BaseName}/ConcatImputation/ -maxdepth 1 -type f -name "*.vcf" |sort -V)"
 
 	# Use BCFTools to Merge the VCF Files Listed in the variable
 		time ${bcftools} concat --threads ${ConcatThreads} ${VCF2Merge} --output-type z --output ./3_Impute/${BaseName}/ConcatImputation/1DONE_${BaseName}_Merged.vcf.gz
@@ -956,7 +1013,7 @@ fi
 
 # Remove Temporary Files to Save Space
 	
-if [ "${KeepTemp}" == "F" ]; then	
+if [ "${KeepTemp,,}" == "f" ]; then	
 
 	echo
 	echo Removing Temporary Files to Save Space
