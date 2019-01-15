@@ -138,27 +138,6 @@ ${Rscript} ./4_GWAS/.R_GWAS.R $Arg6 $Arg7 $Arg8 $Arg9 $Arg10 $Arg11 '$Arg12' $Ar
 	chmod 744 ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
 
-## Visualize Data Script that runs R Script
-#============================================
-
-	#cd ${GWASSubDir}
-
-# Executes the Rscript to analyze and visualize the GWAS analysis
-		
-	#Arg6=${GWASSubDir};
-		
-	#{Rscript} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.R $Arg6"> ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
-
-	#Change Permission Level in Order to Run the New Script
-	#	chmod 744 ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
-
-
-	# Move GWAS Results into 5_QuickResults Folder
-	#cp -R ${GWASSubDir}/${GWASRunName} ${WorkingDir}/5_QuickResults/${BaseName}/GWAS_Results/${GWASRunName}/"> ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
-
-	#Change Permission Level in Order to Run the New Script
-
-
 
 # Execute GWAS?
 #----------------
