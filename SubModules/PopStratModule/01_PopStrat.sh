@@ -15,7 +15,7 @@
 #======================================
 
 source PopStratConfig.conf
-source ../.TitleSplash.txt
+source ../../.TitleSplash.txt
 
 #======================================
 
@@ -42,7 +42,7 @@ echo ----------------------------------------------
 	#Get the PopStrat subdirectory as a Variable for the R script
 	#-----------------------------------------
 		cd $WorkingDir
-		cd PopStratModule
+		cd ./SubModules/PopStratModule
 		PopStratDir=$(pwd)
 		cd ${PopStratDir}
 		echo ${PopStratDir}
@@ -52,7 +52,7 @@ echo ----------------------------------------------
 # Step 1 Variant Extract:
 # ----------------------------------------------------------------------------------
 
-if [ "${VariantExtract}" == "T" ]; then
+if [ "${VariantExtract,,}" == "t" ]; then
 
 #Create Additional PopStrat Module Folders if they don't already exist
 
@@ -109,7 +109,7 @@ fi
 # Step 2 Attempt Merger of 2 Compatible Datasets:
 # ----------------------------------------------------------------------------------
 
-if [ "${AttemptMerger}" == "T" ]; then
+if [ "${AttemptMerger,,}" == "t" ]; then
 
 	echo
 	echo
@@ -127,7 +127,7 @@ fi
 # Step 3 Troubleshoot Merger Attempt by Flipping SNPs, Removing SNPs, & then Re-Merging:
 # ----------------------------------------------------------------------------------
 
-if [ "${FlipTarget}" == "T" ]; then
+if [ "${FlipTarget,,}" == "t" ]; then
 
 
 	# Flipping Target Dataset to Try to Align to Reference Dataset
@@ -189,7 +189,7 @@ fi
 # Step 4: Prune Dataset to Include Those Not in LD as Much
 # ----------------------------------------------------------------------------------
 
-if [ "${PrepData}" == "T" ]; then
+if [ "${PrepData,,}" == "t" ]; then
 
 #Create PCA Analysis Folder within ./Odyssey/PopStratModule if it doesn't already exist
 
@@ -205,11 +205,11 @@ if [ "${PrepData}" == "T" ]; then
 	
 	echo
 	echo
-	echo ==================================================================
-	echo ID Variants in Target-Ref Merged Dataset -- From Step 3 -- in high LD
+	echo ===========================================================================
+	echo ID Variants in Target-Ref Merged Dataset [From Step 3] that are in high LD
 	echo "Dataset used is: ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged"
 	echo Plink LD Command Criteria: --indep-pairwise 1500 150 0.4
-	echo ==================================================================
+	echo ===========================================================================
 	echo
 		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged --indep-pairwise 1500 150 0.4 --out ./PCA_Analyses/${PCA_Analysis_Name}/3_${RefDataset}-${TargetDataset}_Merged
 
@@ -231,7 +231,7 @@ fi
 # Step 5: Perform PCA on Merged Dataset
 # ----------------------------------------------------------------------------------
 
-if [ "${Perform_PCA}" == "T" ]; then
+if [ "${Perform_PCA,,}" == "t" ]; then
 
 # Perform PCA on Pruned Merged Target-Ref Dataset
 	
@@ -253,7 +253,7 @@ fi
 # Step 6: Perform Analysis on PCA Run Completed from Step 5
 # ----------------------------------------------------------------------------------
 
-if [ "${Analyze_PCA}" == "T" ]; then
+if [ "${Analyze_PCA,,}" == "t" ]; then
 
 # Copy Hidden R Analysis File from PopStrat Directory to Specified PCA Analysis Folder
 
@@ -271,7 +271,7 @@ if [ "${Analyze_PCA}" == "T" ]; then
 	echo
 	echo 
 	echo Performing Pre-Analysis/Visualization Check for Necessary Files
-	echo ----------------------------------------------
+	echo ---------------------------------------------------------------
 	
 	# Check for .R files
 	if [ -f ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R ]
@@ -302,11 +302,11 @@ if [ "${Analyze_PCA}" == "T" ]; then
 
 	# Executes the Rscript to analyze and visualize the GWAS analysis
 
-		Arg1="${PopStratDir}/PCA_Analyses/${PCA_Analysis_Name}";
-		Arg2="${PC_VariancePerc}"
-		Arg3="${PC_StandardDev}"
+		Arg6="${PopStratDir}/PCA_Analyses/${PCA_Analysis_Name}";
+		Arg7="${PC_VariancePerc}"
+		Arg8="${PC_StandardDev}"
 		
-		${Rscript} ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R $Arg1 $Arg2 $Arg3   #> ./PCA_Analyses/${PCA_Analysis_Name}/Analysis_OutlierDetection.Rout
+		${Rscript} ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R $Arg6 $Arg7 $Arg8   #> ./PCA_Analyses/${PCA_Analysis_Name}/Analysis_OutlierDetection.Rout
 
 
 
