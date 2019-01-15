@@ -1,8 +1,7 @@
 # Odyssey 
 
 ---------
-Version: 2.0.0 pre-release
-
+Version: 2.0.1
 
 Odyssey is semi-autonomous workflow that aids in the preparation, phasing, and imputation of genomic data. Odyssey also provides support for population structure (admixture) analysis, phenotype normalization, genome-wide-association studies (GWAS), and visualization of analysis results.
 
