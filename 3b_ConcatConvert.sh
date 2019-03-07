@@ -539,7 +539,7 @@ if [ "${AnalyzeINFO,,}" == "t" ]; then
 		# GNU-Parallel Command: Takes all the chromosomal .gen files and analyzes them in parallel
 			if [ "${GNU_ETA,,}" == "t" ]; then
 								
-				seq $INFOStart $INFOEnd | parallel --dryrun --eta GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
+				seq $INFOStart $INFOEnd | parallel --eta GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
 			
 			elif [ "${GNU_ETA,,}" == "f" ]; then
 				seq $INFOStart $INFOEnd | parallel GetInfo {} "&>" ./3_Impute/${BaseName}/ConcatImputation/${BaseName}_Chr{}.snpstatOut
