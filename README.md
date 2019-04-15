@@ -111,6 +111,7 @@ Step 2: Phasing
 3) Phasing is carried out using SHAPEIT/EAGLE recommended settings (shown below) and a reference data map provided by IMPUTE2 (by default) or the user.		
 	
 	a) The SHAPEIT command has the following general form: shapeit --thread [# threads] --input-bed [PlinkTargetBedFile] --input-map [ReferenceMapFile] --output-max [OutputPhasedName] --output-log [OutputPhasedLogName]
+	
 	b) The EAGLE command has the following general form: 
 	eagle --numThreads [# threads] --bfile [PlinkTargetBedFile] --geneticMapFile=[ReferenceMapFile] --outPrefix=[OutputPhasedName] --chrom [Chrom #]
 
@@ -243,11 +244,17 @@ Custom Imputation Ref Panel Creation (BETA)
 As more sequence data is being collected it is now possible for users to create highly customizable imputation reference panels that better suits their needs. If a user has several reference datasets (e.g. custom collected data in addition to 1000 Genomes data) and wishes to merge them into a single reference dataset, then this can be accomplished using the MergeRefSets Submodule found within ./Reference/MergeRefSets/. In general, the workflow is as follows:
 
 1) Put Reference dataset 1 in ./Reference/MergeRefSets/Reference1
+
 2) Put Reference dataset 2 in ./Reference/MergeRefSets/Reference2
+
 3) Add the proper genetic map files in ./Reference/MergeRefSets/GeneticMaps
+
 4) Configure settings in Merge.conf
+
 5) From ./Reference/MergeRefSets run
-	$ bash ./MergeRef.sh
+	
+		$ bash ./MergeRef.sh
+
 6) The two reference datasets will be merged using Impute2's merging function (explained here: https://mathgen.stats.ox.ac.uk/impute/merging_reference_panels.html) and deposited in ./Reference/MergeRefSets/MergedRefPanels
 
 Note: Depending on the size of the reference panels, this operation may take an incredibly long time since the operation is essentially imputing the reference sets to each other, which is essentially a dual-imputation procedure.
