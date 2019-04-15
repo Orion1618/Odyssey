@@ -305,8 +305,11 @@ if [ "${Analyze_PCA,,}" == "t" ]; then
 		Arg6="${PopStratDir}/PCA_Analyses/${PCA_Analysis_Name}";
 		Arg7="${PC_VariancePerc}"
 		Arg8="${PC_StandardDev}"
+		Arg9="${PC_IQRMax}"
+		Arg10="${PC_IQRMin}"
+
 		
-		${Rscript} ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R $Arg6 $Arg7 $Arg8   #> ./PCA_Analyses/${PCA_Analysis_Name}/Analysis_OutlierDetection.Rout
+		${Rscript} ./PCA_Analyses/${PCA_Analysis_Name}/.1_Analysis_OutlierDetection.R $Arg6 $Arg7 $Arg8 $Arg9 $Arg10  #> ./PCA_Analyses/${PCA_Analysis_Name}/Analysis_OutlierDetection.Rout
 
 
 
