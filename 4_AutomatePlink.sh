@@ -18,12 +18,12 @@
 	# Load Odysseys Dependencies -- pick from several methods
 	if [ "${OdysseySetup,,}" == "one" ]; then
 		echo
-		printf "\n\n Loading Odyssey's Singularity Container Image \n\n"
+		printf "\n\nLoading Odyssey's Singularity Container Image \n\n"
 		source ./Configuration/Setup/Programs-Singularity.conf
 	
 	elif [ "${OdysseySetup,,}" == "two" ]; then
 		echo
-		printf "\n\n Loading Odyssey's Manually Configured Dependencies \n\n"
+		printf "\n\nLoading Odyssey's Manually Configured Dependencies \n\n"
 		source ./Configuration/Setup/Programs-Manual.conf
 	else
 
@@ -92,7 +92,7 @@ else
 	echo Getting VCF Dosage File specified in Settings.conf by the Imputation Project to a Plink Dosage PGEN
 	echo
 
-		VCF_Input=$"`find ./3_Impute/${ImputationProject2Analyze}/ConcatImputation -maxdepth 1 -type f -name '1DONE*'`"
+		VCF_Input=$"`find ./3_Impute/${ImputationProject2Analyze}/ConcatImputation -maxdepth 1 -type f -name '1Imputed*'`"
 		Sex_Input=$"`find ./1_Target/${ImputationProject2Analyze} -maxdepth 1 -type f -name 'Ody1_*QC2.fam'`"		
 
 fi
@@ -117,7 +117,7 @@ Arg14="${GWAS_Threads}";
 Arg15="${GWASRunName}";
 Arg16="${BaseName}";
 Arg17="${Pheno_File}";
-# Arg8 can be blank if not converting from a VCF to a PGEN
+# Arg18 can be blank if not converting from a VCF to a PGEN
 Arg18="${VCF_Input}";
 
 
@@ -172,9 +172,9 @@ fi
 	
 # Termination Message
 	echo
-	echo
-	echo "Done!"
-	echo ---------
+	echo ============
+	printf " Phew Done!\n"
+	echo ============
 	echo
 	echo
 	

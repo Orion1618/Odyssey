@@ -6,10 +6,12 @@ Changelog:
 Work-in-Progress:
 --------------------
 Configuring sub-modules so that the user does not have to specifically reference dependency paths
+Update Shapeit2 with the recently released Shapeit4
 
 
 Program History:
 -----------------
+4/15/2019 [v2.1.0] -- Addition of Eagle2 and Minimac4 for phasing and imputation options. Updated the ConcatConvert script to drastically reduce storage requirements. And general bug fixes. 
 
 1/6/2019 [v2.0.0] -- Addition of PopStrat Module, Phenotype Normalizer, Custom Reference Panel Creator, Addition of more configurable options, revised code syntax
 
