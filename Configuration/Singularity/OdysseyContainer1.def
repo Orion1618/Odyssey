@@ -33,7 +33,6 @@ From: ubuntu:latest
 	
 # Export language preferences
 	locale-gen en_US.UTF-8
-
 	export LANG=en_US.UTF-8
 	export LC_ALL=en_US.UTF-8
 	defaults write org.R-project.R force.LANG en_US.UTF-8	
@@ -60,9 +59,11 @@ From: ubuntu:latest
 # Install R Packages
 
 	#Rscript -e "install.packages(c('rgl', 'gdtools'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
-
-	Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','scales','ggplot2','car', 'MASS','gridExtra', 'rcompanion'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
-		#Rscript -e "install.packages('openssl', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"	
+	#Rscript -e "install.packages('openssl', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+	
+Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','scales','ggplot2','car', 'MASS','gridExtra', 'rcompanion'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+	
+		
 	
 
 # Tidy Up Apt-get package manager
@@ -73,7 +74,7 @@ From: ubuntu:latest
 # Install Plink2 (to /usr/local/bin/)
 	
 	# Download from site
-	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/plink2_linux_x86_64_20190102.zip
+	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/plink2_linux_avx2_20190402.zip
 	
 	# Unpack	
 	unzip /usr/local/bin/Plink2.zip -d /usr/local/bin/
@@ -81,6 +82,27 @@ From: ubuntu:latest
 	# Remove the installation Clutter
 	rm /usr/local/bin/Plink2.zip
 
+# Install Eagle2 (to /usr/local/bin/)
+	
+	# Download from site
+	wget --output-document=/usr/local/bin/Eagle.tar.gz https://data.broadinstitute.org/alkesgroup/Eagle/downloads/Eagle_v2.4.1.tar.gz
+	
+	# Unpack	
+	tar -zxvf /usr/local/bin/Eagle.tar.gz --directory /usr/local/bin/
+
+	
+	# Remove the installation Clutter
+	rm /usr/local/bin/Eagle.tar.gz 
+
+# Install Minimach4 (to /usr/local/bin/)
+	
+	# Download from site
+	wget --output-document=/usr/local/bin/Minimach4.deb https://github.com/statgen/Minimac4/releases/download/v1.0.0/minimac4-1.0.0-Linux.deb
+	
+	# Install
+	cd /usr/local/bin/
+	dpkg -i /usr/local/bin/Minimach4.deb
+	apt-get -y install -f
 
 # Install SNPTEST (to /usr/local/bin/)
 	
@@ -136,7 +158,15 @@ From: ubuntu:latest
 
 %environment
 
-	export PATH=/usr/local/bin/miniconda/bin:$PATH
+# Set Path
+PATH=$PATH:\
+/usr/local/bin/miniconda/bin:\
+/usr/local/bin/Eagle_v2.4.1:\
+/usr/local/bin/Minimach4:\
+$HOME/.local/bin:\
+
+# Export path and other things
+	export PATH
 	export LANG=en_US.UTF-8
 	export LC_ALL=en_US.UTF-8
 	
