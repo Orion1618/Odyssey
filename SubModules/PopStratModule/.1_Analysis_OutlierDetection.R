@@ -27,14 +27,14 @@
   library(RColorBrewer)
 
 #Set Working Directory
-	#(MANUAL) setwd('./Odyssey/PopStratModule/PCA_Analyses/HGDP-Euro_PCA')
+	#(MANUAL) setwd('./Odyssey/PopStratModule/PCA_Analyses/Troublemakers2')
 
 # Read in the Command arguments into the R environment  
   commandArgs()->args
   
   args[6]->PCA_Output
   as.character(PCA_Output)->PCA_Output
-    #(Manual -- Set PCA Output Directory) '/N/dc2/scratch/ryeller/Odyssey/SubModules/PopStratModule/PCA_Analyses/PlotlyAddin' ->PCA_Output
+    #(Manual -- Set PCA Output Directory) '/home/ryeller/scratch/GitRepos/Odyssey/SubModules/PopStratModule/PCA_Analyses/TroubleMakers/' ->PCA_Output
   
   args[7]->PC_VariancePerc
   as.numeric(PC_VariancePerc)-> PC_VariancePerc
@@ -42,15 +42,15 @@
   
   args[8]->PC_StdDev
    as.numeric(PC_StdDev)-> PC_StdDev
-	#(Manual -- Set PCA Output Directory) 4->PC_StdDev
+	#(Manual -- Set PCA Output Directory) 2->PC_StdDev
 
   args[9]->PC_IQRMax
   as.numeric(PC_IQRMax)-> PC_IQRMax
-	#(Manual -- Set PCA Output Directory) 0.75->PC_IQRMax
+	#(Manual -- Set PCA Output Directory) 0.9->PC_IQRMax
 
   args[10]->PC_IQRMin
   as.numeric(PC_IQRMin)-> PC_IQRMin
-	#(Manual -- Set PCA Output Directory) 0.25->PC_IQRMin
+	#(Manual -- Set PCA Output Directory) 0.1->PC_IQRMin
 
 # --------- Load Files -------------
 
@@ -140,51 +140,73 @@
 # Do InnerJoin to keep the Samples that will be used to Calculate the centroid of the PC's      
   CentroidSamples <- merge(Eigenvector, CentroidSamples, all = F)
 
-# -------------- Calculate the Standard Deviation Centroid of a Given Sample Set ----------------
+# -------------- Calculate the Mean, Median, SD, and IQR of the Centroid of a Given Sample Set ----------------
   
-# Calculate the Centroid for the multi-dimensional data
-  message('Centroid Averages for N Dimensions')
+# Calculate the Centroid Means for the multi-dimensional data
+  message('Centroid Means for N Dimensions')
   message('--------------------------------')
 
-  (colMeans(CentroidSamples[, -1:-2])->CentroidAVE)
+	(colMeans(CentroidSamples[, -1:-2])->CentroidAVE)
+	
+	  message(' \n\n')
 
-  message(' ')
-  message(' ')
-
-
-# Calculate STDEV of the Centroid points
-  message('Centroid STDEV for N Dimensions')
-  message('--------------------------------')
-
-  (apply(CentroidSamples[, -1:-2], 2, sd)->CentroidSTDEV)
-
-  message(' ')
-  message(' ')
+# Calculate the Centroid Medians for the multi-dimensional data
+	message('Centroid Medians for N Dimensions')
+	message('--------------------------------')
+  
+		lapply(CentroidSamples[, -1:-2], IQR) -> CentroidMEDIAN
+		(as.data.frame(CentroidMEDIAN))
+	
+	message('\n\n')
 
 
-# Calculate Outlier Cutoffs (+/- Given STDEV)
-  message('Max Centroid Cutoff')
-  message('--------------------------------')
+# Calculate STDEV for the multi-dimensional data
+	message('Centroid STDEV for N Dimensions')
+	message('--------------------------------')
 
-  (CentroidAVE+(as.numeric(PC_StdDev)*CentroidSTDEV)->MaxCutoff  )
-  #(MANUAL -- set STDEV -- default == 3) (CentroidAVE+3*CentroidSTDEV->MaxCutoff  )
+	(apply(CentroidSamples[, -1:-2], 2, sd)->CentroidSTDEV)
+	
+	message('\n\n')
+  
+ # Calculate SD Outlier Cutoffs (+/- Given STDEV)
+	message('Min Centroid SD Cutoff')
+	message('--------------------------------')
 
-  message(' ')
-  message(' ')
+		(CentroidAVE-as.numeric(PC_StdDev)*CentroidSTDEV->MinCutoff  )
+			#(MANUAL -- set STDEV -- default == 3) (CentroidAVE-3*CentroidSTDEV->MinCutoff  )
+	message('\n\n')
+  
+	message('Max Centroid SD Cutoff')
+	message('--------------------------------')
 
-  message('Min Centroid Cutoff')
-  message('--------------------------------')
+		(CentroidAVE+(as.numeric(PC_StdDev)*CentroidSTDEV)->MaxCutoff  )
+			#(MANUAL -- set STDEV -- default == 3) (CentroidAVE+3*CentroidSTDEV->MaxCutoff  )
+	message('\n\n')
+  
+  
+  
+ # Calculate IQR Cutoffs (+/- Given IQR's)
+	message('Min Centroid IQR Cutoff -- [%] [raw values]')
+	message('--------------------------------')
+		lapply(CentroidSamples[, -1:-2],quantile,probs=PC_IQRMin) -> CentroidIQRMin
+			(as.data.frame(CentroidIQRMin))
+  
+	message('\n\n')
 
-  (CentroidAVE-as.numeric(PC_StdDev)*CentroidSTDEV->MinCutoff  )
-  #(MANUAL -- set STDEV -- default == 3) (CentroidAVE-3*CentroidSTDEV->MinCutoff  )
+	message('Max Centroid IQR Cutoff -- [%] [raw values]')
+	message('--------------------------------')	
+		lapply(CentroidSamples[, -1:-2],quantile,probs=PC_IQRMax) -> CentroidIQRMax
+			(as.data.frame(CentroidIQRMax))
 
-  message('')
-  message(' ')
+	message('\n\n')
 
 
-# -------------------- Removes the Standard Deviation Outliers -------------------
 
-# Or Remove Individual EigenVectors that lie outside of the User-Specified Centroid
+
+
+# -------------------- Removes the Outliers -------------------
+
+# Or Remove Individual EigenVectors that lie outside of the User-Specified Centroid (either via SD or IQR)
   
 #Set DataTable to DataFrame
   setDF(Eigenvector)
@@ -193,30 +215,42 @@
   length(grep("PC", colnames(Eigenvector)))->PC2Analyze
 
 # Keep the entries that are within the STDEV bounds
-  OutliersRemoved <- Eigenvector[rowSums(mapply(between, Eigenvector[ grep("PC", colnames(Eigenvector)) ], MinCutoff, MaxCutoff)) >= PC2Analyze,]
-  write.table(OutliersRemoved[,1:2], file=paste0(PCA_Output, '/', 'OutliersRemoved_SD.txt'), row.names = F, col.names = F, quote = F)
+	OutliersRemoved_SD <- Eigenvector[rowSums(mapply(between, Eigenvector[ grep("PC", colnames(Eigenvector)) ], MinCutoff, MaxCutoff)) >= PC2Analyze,]
+	
+	write.table(OutliersRemoved_SD[,1:2], file=paste0(PCA_Output, '/', 'OutliersRemoved_SD.txt'), row.names = F, col.names = F, quote = F)
+  
+ # Keep the entries that are within the IQR bounds
+	OutliersRemoved_IQR <- Eigenvector[rowSums(mapply(between, Eigenvector[ grep("PC", colnames(Eigenvector)) ], CentroidIQRMin, CentroidIQRMax)) >= PC2Analyze,]
+  
+	write.table(OutliersRemoved_IQR[,1:2], file=paste0(PCA_Output, '/', 'OutliersRemoved_IQR.txt'), row.names = F, col.names = F, quote = F)
 
 
-# Get the table of outliers
-  #(Legacy Code) Eigenvector[!(Eigenvector$IID %in% OutliersRemoved$IID ),] -> Outliers
-  Outliers<- anti_join(Eigenvector, OutliersRemoved, by= c('FID', 'IID'))
-  write.table(Outliers[,1:2], file=paste0(PCA_Output, '/', 'CompleteOutliers_SD.txt'), row.names = F, col.names = F, quote = F)
+# Get the table of SD Outliers
+  #(Legacy Code) Eigenvector[!(Eigenvector$IID %in% OutliersRemoved_SD$IID ),] -> Outliers
+	Outliers_SD<- anti_join(Eigenvector, OutliersRemoved_SD, by= c('FID', 'IID'))
+	
+	write.table(Outliers_SD[,1:2], file=paste0(PCA_Output, '/', 'CompleteOutliers_SD.txt'), row.names = F, col.names = F, quote = F)
+  
+ # Get the table of IQR Outliers
+	Outliers_IQR <- anti_join(Eigenvector, OutliersRemoved_IQR, by= c('FID', 'IID'))
+  
+	write.table(Outliers_IQR[,1:2], file=paste0(PCA_Output, '/', 'CompleteOutliers_IQR.txt'), row.names = F, col.names = F, quote = F)
 
 
 # ----------------------- Start Plotting the Standard Deviation Graphs ----------------------------
 
 # Remove Referenece People  from Outliers Removed to Get just those for analysis
-  JustAnalysis<- anti_join(OutliersRemoved, CentroidSamples, by= c('FID', 'IID'))
+  JustAnalysis_SD<- anti_join(OutliersRemoved_SD, CentroidSamples, by= c('FID', 'IID'))
 
 # Label the Individuals as Reference, Outliers, or Samples for Analysis
   CentroidSamples$Group <- "RefPop"
-  JustAnalysis$Group <- "4Analysis"
-  Outliers$Group <- "Outliers"
+  JustAnalysis_SD$Group <- "4Analysis"
+  Outliers_SD$Group <- "Outliers"
 
   
 # Combine Dataset for Scatter Plot
-  rbind.data.frame(CentroidSamples, JustAnalysis) -> PlotMe
-  rbind.data.frame(PlotMe, Outliers) -> PlotMe
+  rbind.data.frame(CentroidSamples, JustAnalysis_SD) -> PlotMe_SD
+  rbind.data.frame(PlotMe_SD, Outliers_SD) -> PlotMe_SD
 
 
 # Output plot as PNG
@@ -224,8 +258,8 @@
 
   message('')
   message(' ')
-  message('Outputting PCA Plot')
-  message('--------------------------------')
+  message('Outputting PCA Plot for SD Based Pop Strat')
+  message('-------------------------------------------')
 
   options(bitmapType='cairo') 
   png(paste0(PCA_Output, '/', 'PCA-sd_Plot.png'))
@@ -233,15 +267,16 @@
 
   
 # Change point shapes by the levels of cyl
-  ggplot(PlotMe, aes(x=PC1, y=PC2, shape=Group, color=Group)) +
+  ggplot(PlotMe_SD, aes(x=PC1, y=PC2, shape=Group, color=Group)) +
   geom_point()
 
 
   dev.off()
 
 # Output outlying samples to exclude as well as entire Ref-Target Eigenvector Table:
-  write.table(Outliers[ ,1:2], file=paste0(PCA_Output,'/', 'AncestryOutliers-sd.txt'), row.names=F, col.names = F, sep = "\t", quote = F )
-  write.table(PlotMe, file=paste0(PCA_Output,'/', 'PCA-sd_CompleteTable.txt'), row.names=F, col.names = T, sep = "\t", quote = F )
+  write.table(Outliers_SD[ ,1:2], file=paste0(PCA_Output,'/', 'AncestryOutliers-sd.txt'), row.names=F, col.names = F, sep = "\t", quote = F )
+  
+  write.table(PlotMe_SD, file=paste0(PCA_Output,'/', 'PCA-sd_CompleteTable.txt'), row.names=F, col.names = T, sep = "\t", quote = F )
 
   #(MANUAL -- writes to current working directory) write.table(Outliers[ ,1:2], file=paste0(getwd(),'/', 'AncestryOutliers-sd.txt'), row.names=F, col.names = F, sep = "\t", quote = F )
   #(MANUAL -- writes to current working directory) write.table(PlotMe, file=paste0(getwd(),'/', 'PCA-sd_CompleteTable.txt'), row.names=F, col.names = T, sep = "\t", quote = F )
@@ -261,95 +296,47 @@
 
 # Make the ploty 3D scatterplot (using PC1=X, PC2=Y, PC3=Z, using the most destinctive color categories -- up to 60 color groups)
 
-p <- plot_ly(PlotMe, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, colors = sample(col_vector, 60), marker = list(size=5),
+p_SD <- plot_ly(PlotMe_SD, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, colors = "Set1", marker = list(size=2),
  text = ~paste0('FID:IID', FID, ":", IID)) %>%
   add_markers() %>%
   layout(scene = list(xaxis = list(title = 'PC1'),
                       yaxis = list(title = 'PC2'),
                       zaxis = list(title = 'PC3')))
+					  
+					  
+# Make as many colors as there are samples
+#p <- plot_ly(PlotMe, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, colors = sample(col_vector, 3), marker = list(size=2),
+ #text = ~paste0('FID:IID', FID, ":", IID)) %>%
+  #add_markers() %>%
+  #layout(scene = list(xaxis = list(title = 'PC1'),
+   #                   yaxis = list(title = 'PC2'),
+    #                  zaxis = list(title = 'PC3')))
 
 # visualize the Plot locally on R
 	#p
 
 # Save Plot to current working directory
 # Plotely Dependencies will be plotted in the Directory where plot is saved
-	htmlwidgets::saveWidget(p, paste0(PCA_Output, '/PCA-sd_Plot.html'), libdir = paste0(PCA_Output, '/1PlotlyDependencies/'), selfcontained=FALSE) 
-  
-  
-  
-  
-  
+	htmlwidgets::saveWidget(p_SD, paste0(PCA_Output, '/PCA-sd_Plot.html'), libdir = paste0(PCA_Output, '/1PlotlyDependencies/'), selfcontained=FALSE) 
 
   message('')
   message(' ')
   message('Summary of Standard Deviation PopStrat')
-  message('======================')
+  message('========================================')
   message(paste('Individuals used as a reference:', nrow(CentroidSamples) ))
-  message(paste('Individuals deemed as outliers from given standard deviation (includes Samples from Ref Set and Target Set):',nrow(Outliers) ))
-  message(paste('Individuals kept for analysis:', nrow(OutliersRemoved)))
+  message(paste('Individuals deemed as outliers from given standard deviation (includes Samples from Ref Set and Target Set):',nrow(Outliers_SD) ))
+  message(paste('Individuals kept for analysis:', nrow(OutliersRemoved_SD)))
   message('')
   message('')
-
-
-  message('')
-  message('--------------------------------')
-  message('Done!')
-  message('--------------------------------')
-  message('')
-
-# -------------- Calculate the Interquartile Range Centroid of a Given Sample Set ----------------
   
-# Calculate the Centroid for the multi-dimensional data
- message('Centroid Medians for N Dimensions')
-message('--------------------------------')
-
-# PC Medians for N dimensions
-lapply(CentroidSamples[, -1:-2], IQR) -> CentroidMEDIAN
-
-message(' ')
-message(' ')
-
-
-
-# Calculate IQR of the Centroid points
-  message('Centroid IQR for N Dimensions')
-  message('--------------------------------')
-
-  lapply(CentroidSamples[, -1:-2],quantile,probs=PC_IQRMin) -> CentroidIQRMin
-  lapply(CentroidSamples[, -1:-2],quantile,probs=PC_IQRMax) -> CentroidIQRMax
-
-  message(' ')
-  message(' ')
-
-
-# -------------------- Removes the Interquartile Range Outliers -------------------
-
-# Or Remove Individual EigenVectors that lie outside of the User-Specified Centroid
   
-#Set DataTable to DataFrame
-  setDF(Eigenvector)
-
-# Determine number of PC to Analyze
-  length(grep("PC", colnames(Eigenvector)))->PC2Analyze
-
-# Keep the entries that are within the IQR bounds
-  OutliersRemoved_IQR <- Eigenvector[rowSums(mapply(between, Eigenvector[ grep("PC", colnames(Eigenvector)) ], CentroidIQRMin, CentroidIQRMax)) >= PC2Analyze,]
-  write.table(OutliersRemoved_IQR[,1:2], file=paste0(PCA_Output, '/', 'OutliersRemoved_IQR.txt'), row.names = F, col.names = F, quote = F)
-
-
-# Get the table of outliers
-  #(Legacy Code) Eigenvector[!(Eigenvector$IID %in% OutliersRemoved_IQR$IID ),] -> Outliers_IQR
-  Outliers_IQR <- anti_join(Eigenvector, OutliersRemoved_IQR, by= c('FID', 'IID'))
-  write.table(Outliers_IQR[,1:2], file=paste0(PCA_Output, '/', 'CompleteOutliers_IQR.txt'), row.names = F, col.names = F, quote = F)
-
-
-# ----------------------- Start Plotting the Standard Deviation Graphs ----------------------------
+  # ----------------------- Start Plotting the IQR Graphs ----------------------------
 
 # Remove Referenece People  from Outliers Removed to Get just those for analysis
   JustAnalysis_IQR<- anti_join(OutliersRemoved_IQR, CentroidSamples, by= c('FID', 'IID'))
 
 # Label the Individuals as Reference, Outliers, or Samples for Analysis
-  CentroidSamples$Group <- "RefPop"
+  #CentroidSamples$Group <- "RefPop"
   JustAnalysis_IQR$Group <- "4Analysis"
   Outliers_IQR$Group <- "Outliers"
 
@@ -383,10 +370,7 @@ message(' ')
   write.table(Outliers_IQR[ ,1:2], file=paste0(PCA_Output,'/', 'AncestryOutliers-iqr.txt'), row.names=F, col.names = F, sep = "\t", quote = F )
   write.table(PlotMe_IQR, file=paste0(PCA_Output,'/', 'PCA-iqr_CompleteTable.txt'), row.names=F, col.names = T, sep = "\t", quote = F )
 
-  #(MANUAL -- writes to current working directory) write.table(Outliers_IQR[ ,1:2], file=paste0(getwd(),'/', 'AncestryOutliers-iqr.txt'), row.names=F, col.names = F, sep = "\t", quote = F )
-  #(MANUAL -- writes to current working directory) write.table(PlotMe_IQR, file=paste0(getwd(),'/', 'PCA-iqr_CompleteTable.txt'), row.names=F, col.names = T, sep = "\t", quote = F )
-  
-  
+ 
 # Output plot as Interactive Plotly
 # -----------------------------------
 
@@ -401,7 +385,7 @@ message(' ')
 
 # Make the ploty 3D scatterplot (using PC1=X, PC2=Y, PC3=Z, using the most destinctive color categories -- up to 60 color groups)
 
-p_IQR <- plot_ly(PlotMe_IQR, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, colors = sample(col_vector, 60), marker = list(size=5),
+p_IQR <- plot_ly(PlotMe_IQR, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, colors = "Set1", marker = list(size=2),
  text = ~paste0('FID:IID', FID, ":", IID)) %>%
   add_markers() %>%
   layout(scene = list(xaxis = list(title = 'PC1'),
@@ -413,7 +397,7 @@ p_IQR <- plot_ly(PlotMe_IQR, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, color
 
 # Save Plot to current working directory
 # Plotely Dependencies will be plotted in the Directory where plot is saved
-	htmlwidgets::saveWidget(p, paste0(PCA_Output, '/PCA-iqr_Plot.html'), libdir = paste0(PCA_Output, '/1PlotlyDependencies/'), selfcontained=FALSE) 
+	htmlwidgets::saveWidget(p_IQR, paste0(PCA_Output, '/PCA-iqr_Plot.html'), libdir = paste0(PCA_Output, '/1PlotlyDependencies/'), selfcontained=FALSE) 
   
   
   
@@ -423,9 +407,9 @@ p_IQR <- plot_ly(PlotMe_IQR, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, color
   message('')
   message(' ')
   message('Summary of Interquartile Range PopStrat')
-  message('======================')
+  message('========================================')
   message(paste('Individuals used as a reference:', nrow(CentroidSamples) ))
-  message(paste('Individuals deemed as outliers from given standard deviation (includes Samples from Ref Set and Target Set):',nrow(Outliers_IQR) ))
+  message(paste('Individuals deemed as outliers from given IQR (includes Samples from Ref Set and Target Set):',nrow(Outliers_IQR) ))
   message(paste('Individuals kept for analysis:', nrow(OutliersRemoved_IQR)))
   message('')
   message('')
@@ -436,3 +420,9 @@ p_IQR <- plot_ly(PlotMe_IQR, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Group, color
   message('Done!')
   message('--------------------------------')
   message('')
+  
+
+  
+  
+  
+

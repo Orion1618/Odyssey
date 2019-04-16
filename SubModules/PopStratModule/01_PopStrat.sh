@@ -117,7 +117,7 @@ if [ "${AttemptMerger,,}" == "t" ]; then
 	echo Attempting to Merge the RefDataset and the Custom Dataset
 	echo ==================================================================
 	echo
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${RefDataset}_Compatible --bmerge ./Merged_Target-Ref_Datasets-TEMP/1_${TargetDataset}_Compatible --memory ${Max_Memory}000 --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/3_${RefDataset}-${TargetDataset}_Merged
+		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${RefDataset}_Compatible --bmerge ./Merged_Target-Ref_Datasets-TEMP/1_${TargetDataset}_Compatible --memory ${Max_Memory}000 --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/3a_${RefDataset}-${TargetDataset}_Merged
 
 fi
 
@@ -138,12 +138,12 @@ if [ "${FlipTarget,,}" == "t" ]; then
 	echo Flipping Target Dataset to Try to Align to Reference Dataset
 	echo ==================================================================
 	echo	
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${TargetDataset}_Compatible --flip ./Merged_Target-Ref_Datasets-TEMP/3_${RefDataset}-${TargetDataset}_Merged-merge.missnp --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/2a_${TargetDataset}_Flipped
+		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${TargetDataset}_Compatible --flip ./Merged_Target-Ref_Datasets-TEMP/3a_${RefDataset}-${TargetDataset}_Merged-merge.missnp --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/2a_${TargetDataset}_CompatibleFlip
 
 	echo
 	echo
 	echo ==================================================================
-	echo "Target Dataset Flipped Based on ./Merged_Target-Ref_Datasets-TEMP/3_${RefDataset}-${TargetDataset}_Merged-merge.missnp"
+	echo "Target Dataset Flipped Based on ./Merged_Target-Ref_Datasets-TEMP/3a_${RefDataset}-${TargetDataset}_Merged-merge.missnp"
 	echo ==================================================================
 	echo
 		sleep 0.5
@@ -156,30 +156,41 @@ if [ "${FlipTarget,,}" == "t" ]; then
 	echo Attempting to Merge the RefDataset and the Flipped Target Dataset
 	echo ==================================================================
 	echo
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${RefDataset}_Compatible --bmerge ./Merged_Target-Ref_Datasets-TEMP/2a_${TargetDataset}_Flipped --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/3_${RefDataset}-${TargetDataset}_Merged
+		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${RefDataset}_Compatible --bmerge ./Merged_Target-Ref_Datasets-TEMP/2a_${TargetDataset}_CompatibleFlip --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/3b_${RefDataset}-${TargetDataset}_Merged
 		sleep 0.5
 	
-	# Remove Remaining Problematic SNPS and Re-Attempting Merger
+	# Remove Remaining Problematic SNPS if there are any and Re-Attempting Merger
+	if ls ./Merged_Target-Ref_Datasets-TEMP/3b_${RefDataset}-${TargetDataset}_Merged-merge.missnp 1> /dev/null 2>&1; then
 	
-	echo
-	echo
-	echo ==================================================================
-	echo Removing Remaining Problematic SNPS
-	echo ==================================================================
-	echo
+		echo
+		echo
+		echo ==================================================================
+		echo Removing Remaining Problematic SNPS
+		echo ==================================================================
+		echo
 		
-	#Remove Problematic Variants
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/2a_${TargetDataset}_Flipped --exclude ./Merged_Target-Ref_Datasets-TEMP/3_${RefDataset}-${TargetDataset}_Merged-merge.missnp --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/2b_${TargetDataset}_Flipped-TroubleVariantsRm
+		#Remove Problematic Variants
+			${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/2a_${TargetDataset}_CompatibleFlip --exclude ./Merged_Target-Ref_Datasets-TEMP/3b_${RefDataset}-${TargetDataset}_Merged-merge.missnp --make-bed --out ./Merged_Target-Ref_Datasets-TEMP/2b_${TargetDataset}_CompatibleFlip-TroubleVariantsRm
 	
-	echo
-	echo
-	echo ==================================================================
-	echo Re-Attempting Merger of RefDataset and the Flipped/Problematic-Variants-Removed Target Dataset
-	echo ==================================================================
-	echo
+		echo
+		echo
+		echo ==================================================================
+		echo Re-Attempting Merger of RefDataset and the Flipped/Problematic-Variants-Removed Target Dataset
+		echo ==================================================================
+		echo
 		
-	#Re-attempt Merged with RefDataset and Target Datset that has been flipped and the Problematic (Triallelic) Variants Removed
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${RefDataset}_Compatible --bmerge ./Merged_Target-Ref_Datasets-TEMP/2b_${TargetDataset}_Flipped-TroubleVariantsRm --make-bed --out ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged
+		#Re-attempt Merged with RefDataset and Target Datset that has been flipped and the Problematic (Triallelic) Variants Removed
+			${PlinkExec} --bfile ./Merged_Target-Ref_Datasets-TEMP/1_${RefDataset}_Compatible --bmerge ./Merged_Target-Ref_Datasets-TEMP/2b_${TargetDataset}_CompatibleFlip-TroubleVariantsRm --make-bed --out ./Merged_Target-Ref_Datasets/3b_${RefDataset}-${TargetDataset}_Merged
+	
+	else
+		echo
+		echo
+		echo =================================================================
+		echo "No Problematic SNPs to Remove -- Horray! Moving ./Merged_Target-Ref_Datasets-TEMP/3_${RefDataset}-${TargetDataset}_Merged Files to  ./Merged_Target-Ref_Datasets/"
+		echo =================================================================
+		echo
+		mv ./Merged_Target-Ref_Datasets-TEMP/3b_${RefDataset}-${TargetDataset}_Merged* ./Merged_Target-Ref_Datasets/
+	fi
 
 fi
 
@@ -200,6 +211,19 @@ if [ "${PrepData,,}" == "t" ]; then
 	echo ${WorkingDir}PopStratModule/${PCA_Analysis_Name}
 
 		mkdir -p ./PCA_Analyses/${PCA_Analysis_Name}
+		
+
+		# QC Dataset for Missingness and HWE
+	
+	echo
+	echo
+	echo ===========================================================================
+	echo Perform General QC prior to LD pruning and PCA Analysis
+	echo "Dataset used is: ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged"
+	echo Plink QC Criteria: --hwe 0.0001 --mind 0.05 --geno 0.05
+	echo ===========================================================================
+	echo
+		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets/3b_${RefDataset}-${TargetDataset}_Merged --hwe 0.0001 --mind 0.1 --geno 0.1 --make-bed --out ./Merged_Target-Ref_Datasets/4_${RefDataset}-${TargetDataset}_QCMerged		
 
 # Identify Variants in Target-Reference Merged Dataset that are in high LD
 	
@@ -207,11 +231,11 @@ if [ "${PrepData,,}" == "t" ]; then
 	echo
 	echo ===========================================================================
 	echo ID Variants in Target-Ref Merged Dataset [From Step 3] that are in high LD
-	echo "Dataset used is: ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged"
+	echo "Dataset used is: ./Merged_Target-Ref_Datasets/4_${RefDataset}-${TargetDataset}_QCMerged"
 	echo Plink LD Command Criteria: --indep-pairwise 1500 150 0.4
 	echo ===========================================================================
 	echo
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged --indep-pairwise 1500 150 0.4 --out ./PCA_Analyses/${PCA_Analysis_Name}/3_${RefDataset}-${TargetDataset}_Merged
+		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets/4_${RefDataset}-${TargetDataset}_QCMerged --indep-pairwise 1500 150 0.4 --out ./Merged_Target-Ref_Datasets/4_${RefDataset}-${TargetDataset}_QCMerged
 
 # Remove the Pruned Variants found in the previous step from the final EigenReady Target/Ref Merged Dataset
 	
@@ -221,8 +245,7 @@ if [ "${PrepData,,}" == "t" ]; then
 	echo Pruning Dataset based on variants found in prune.in file
 	echo ==================================================================
 	echo
-		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets/3_${RefDataset}-${TargetDataset}_Merged --extract ./PCA_Analyses/${PCA_Analysis_Name}/3_${RefDataset}-${TargetDataset}_Merged.prune.in --make-bed --out ./PCA_Analyses/${PCA_Analysis_Name}/4_${RefDataset}-${TargetDataset}_PCAReady
-
+		${PlinkExec} --bfile ./Merged_Target-Ref_Datasets/4_${RefDataset}-${TargetDataset}_QCMerged --extract ./Merged_Target-Ref_Datasets/4_${RefDataset}-${TargetDataset}_QCMerged.prune.in --make-bed --out ./PCA_Analyses/${PCA_Analysis_Name}/5_${RefDataset}-${TargetDataset}_PCAReady
 
 fi
 
@@ -239,11 +262,11 @@ if [ "${Perform_PCA,,}" == "t" ]; then
 	echo
 	echo ==================================================================
 	echo Performing PCA on the Following Pruned Merged Target-Ref Dataset:
-	echo "./PCA_Analyses/${PCA_Analysis_Name}/4_${RefDataset}-${TargetDataset}_PCAReady"
+	echo "./PCA_Analyses/${PCA_Analysis_Name}/5_${RefDataset}-${TargetDataset}_PCAReady"
 	echo Default Plink QC Performed Prior to Analysis: --mind 0.1 --geno 0.1
 	echo ==================================================================
 	echo
-		${PlinkExec} --bfile ./PCA_Analyses/${PCA_Analysis_Name}/4_${RefDataset}-${TargetDataset}_PCAReady --pca --mind 0.1 --geno 0.1 --out ./PCA_Analyses/${PCA_Analysis_Name}/4_${RefDataset}-${TargetDataset}_PCAReady
+		${PlinkExec} --bfile ./PCA_Analyses/${PCA_Analysis_Name}/5_${RefDataset}-${TargetDataset}_PCAReady --pca --mind 0.1 --geno 0.1 --out ./PCA_Analyses/${PCA_Analysis_Name}/5_${RefDataset}-${TargetDataset}_PCAReady
 
 		
 fi
