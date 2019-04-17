@@ -490,6 +490,46 @@ if (interactive() ){
 
 	system(paste0('rm -f ', getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/2*'))
 	system(paste0('rm -f ', getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/1*'))
+	
+	
+# Create a custom Readme file in the target directory to explain what is being populated
+
+	cat("\n\n===================================================\n")
+	cat('Writing Readme to File\n')
+	cat("--------------------------------\n\n")
+	
+sink(paste0(getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/README_QC'))
+
+	
+cat(paste0("README for Dataset_QC-Visualization
+=============================================\n 
+	
+In the following folder you will find several documents that pertain to the QC of the data being processed user the following user-defined cutoffs:
+	
+	--Heterozygosity Cutoff: \t\t", HetQC , " STDEV
+	--Individual Missingness Cutoff: \t", IndivQC*100 ,"%
+	--Genotype Missingness Cutoff: \t\t", GenoQC*100 ,"%
+	--Identify By Decent Cutoff: \t\t", IBDQC ,"
+	
+1) Failed QC Lists: These lists contain the FID and IID of individuals who failed the user-specified cutoff criteria
+	a) failed.imisshet.txt -- Contains list of ID's who failed the heterozygosity test and who contained a high degree of missing genotypes
+	b) failed.related.txt -- Contains list of the FIRST ID in the ID-Pair who were failed the Identity by Decent test
+	c) failed.qc.test -- A merged list of failed.imisshet and failed.related that contain unique individuals (i.e. duplicates were removed)
+	
+2) Heterozygosity Results:
+	a) Het.het/log: The raw heterozygosity test for the dataset
+	b) IndivMissingVSheterozygosity.jpg: The visualization of missingness (on the individual level) and heterozygosity for the dataset, which includes the user-defined cutoffs in red
+		
+3) Missingness Results:
+	a) Missing.imiss/lmiss/log: The raw missingness test results and log run on the dataset
+	b) Missing.jpg: The visualization for the genetic missingness in the dataset along with the user-defined cutoff in red
+	
+4) Relatedness Results:
+	a) RelatedTest.genome/log: The raw IBD test results and log run on the dataset
+	b) IBD-Plot.html: The interactive Plotly visualization for the IBD test. The PlotlyDependencies folder must me in the same location as the .html in order to visualize the plot via a web browser	\n\n"))
+
+sink()
+
 
 
   cat('\n=========================================\n')

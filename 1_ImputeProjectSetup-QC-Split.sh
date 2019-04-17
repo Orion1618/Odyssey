@@ -47,6 +47,7 @@
 # Set Working Directory
 # -------------------------------------------------
 	echo
+	echo
 	echo Changing to Working Directory
 	echo ----------------------------------------------
 	echo ${WorkingDir}
@@ -56,6 +57,8 @@
 
 # Create Project Folder within Target Directory
 # -------------------------------------------------
+	echo
+	echo
 	echo
 	echo Creating Project Folder within Target Directory
 	echo ----------------------------------------------
@@ -87,21 +90,17 @@
 	
 # QC (2 Steps): this will exclude genotypes before people (prioritizing people over variants)
 # ----------------------------------------------------------------------------------
-	echo
-	echo
-	echo "Perfoming QC Step 1 -- Removing Poorly Genotyped Genotypes"
+	printf "\n\n\nPerfoming QC Step 1 -- Removing Poorly Genotyped Genotypes"
 	echo -----------------------------------------------------------
 	echo
-	echo
+	
 	
 	${Plink_Exec} --allow-no-sex --bfile ./1_Target/${BaseName}/${Cohort_InputFileName} --geno ${GenoQC} --hwe ${HweQC} --maf ${MafQC} --make-bed --out ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1
 
-	echo
-	echo
-	echo "Perfoming QC Step 2 -- Removing Poorly Genotyped Individuals"
+	printf "\n\n\nPerfoming QC Step 2 -- Removing Poorly Genotyped Individuals"
 	echo -----------------------------------------------------------
 	echo
-	echo
+	
 
 	${Plink_Exec} --allow-no-sex --bfile ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1 --mind ${MindQC} --make-bed --out ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2
 	
@@ -109,12 +108,11 @@
 # Splitting BED/bim/fam by chromosome (goes through all 26 chromosomes by default)
 # ----------------------------------------------------------------------------------
 for chr in {1..26}; do
-	echo
-	echo
-	echo "Processing ${BaseName}_Pre-ImputeQC2 Plink Dataset -- Isolating Chromosome ${chr}"
+
+	printf "\n\n\nProcessing ${BaseName}_Pre-ImputeQC2 Plink Dataset -- Isolating Chromosome ${chr}"
 	echo ----------------------------------------------------------------------------
 	echo
-	echo
+	
 	$Plink_Exec --bfile ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2 --chr ${chr} --make-bed --out ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr}
 	
 done

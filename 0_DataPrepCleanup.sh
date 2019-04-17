@@ -73,6 +73,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 	
 	if [ "${DownloadRef,,}" == "t" ]; then
 	
+		echo
 		echo Downloading Reference Data and index files from 1K Genomes and NCBI
 		echo ----------------------------------------------
 	
@@ -90,6 +91,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		
 	
 	# Download the annotation files (make sure the the build version is correct) to flip/fix the alleles
+		echo
 		echo Downloading ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
 		echo
 		wget --directory-prefix=./0_DataPrepModule/RefAnnotationData/ ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
@@ -245,18 +247,21 @@ if [ "${PerformFixref,,}" == "t" ]; then
 	
 elif [ "${PerformFixref,,}" == "f" ]; then
 
+	#Make Temp Directory in which all Temp files will populate
+		mkdir -p ./0_DataPrepModule/TEMP
+
 		
 	# Finally Remove any positional duplicates 
 		# i.e. same position and alleles, but differently named variants since Shapeit will not tolerate these
 	
-		printf "\n Finding Positional and Allelic Duplicates \n"
+		printf "\n\nFinding Positional and Allelic Duplicates \n"
 		echo ----------------------------------------------
 		echo
 		echo
 	
 		${Plink_Exec} --bfile ./0_DataPrepModule/PLACE_DATA_2B_FIXED_HERE/${RawData} --list-duplicate-vars ids-only suppress-first --out ./0_DataPrepModule/TEMP/Dups2Remove
 		
-		printf "\n Removing Positional and Allelic Duplicates \n"
+		printf "\n\nRemoving Positional and Allelic Duplicates \n"
 		echo ----------------------------------------------
 		echo
 		echo
