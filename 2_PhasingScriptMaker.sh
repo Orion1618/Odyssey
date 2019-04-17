@@ -243,7 +243,7 @@ fi
 
 if [ "${UseShapeit,,}" == "t" ]; then
 
-	printf "Using Shapeit for Phasing\n=======================\n\n"
+	printf "\n\nUsing Shapeit for Phasing\n=======================\n\n"
 
 	
 	## -------------------------------------------
@@ -257,9 +257,9 @@ if [ "${UseShapeit,,}" == "t" ]; then
 	
 		#Search the reference directory for the chromosome specific reference map, legend, and hap files and create their respective variables on the fly
 	
-			printf "\nProcessing Chromosome ${chr} Script \n"
+			printf "\n\nProcessing Chromosome ${chr} Script \n"
 			echo -----------------------------------
-			echo
+			
 		
 			echo "Pre-Check: Looking in ./Reference For Reference Files "
 			echo "Found the Following Shapeit References for Chromosome ${chr}: "
@@ -326,9 +326,9 @@ ${Shapeit2_Exec} \
 		## Phasing Script Creation for HPC (Chr23/X)
 		## -------------------------------------------
 		
-			printf "\nProcessing X Chromosome Script \n"
+			printf "\n\nProcessing X Chromosome Script \n"
 			echo -----------------------------------
-			echo
+			
 		
 		# Search the reference directory for the X chromosome specific reference map, legend, and hap files and create their respective variables on the fly
 			
@@ -391,7 +391,7 @@ fi
 
 if [ "${UseEagle,,}" == "t" ]; then
 
-	printf "Using Eagle for Phasing\n=======================\n\n"
+	printf "\n\nUsing Eagle for Phasing\n=======================\n\n"
 
 
 	## -------------------------------------------
@@ -405,10 +405,9 @@ if [ "${UseEagle,,}" == "t" ]; then
 	
 		#Search the reference directory for the chromosome specific reference map, legend, and hap files and create their respective variables on the fly
 	
-			printf "\nProcessing Chromosome ${chr} Script \n"
+			printf "\n\nProcessing Chromosome ${chr} Script \n"
 			echo -----------------------------------
-			echo
-		
+					
 			echo "Pre-Check: Looking in ./Reference For Reference Files "
 			echo "Found the Following Eagle References for Chromosome ${chr}: "
 		
@@ -457,13 +456,13 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.
 			
 				if [ "${HPS_Submit,,}" == "t" ]; then
 			
-					echo
+					
 					echo Submitting Phasing script to HPC Queue
 					echo
 						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out -N PChr${chr}_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
 						sleep 0.2
 				else
-					echo
+					
 					echo Submitting Phasing script to Desktop Queue
 					echo
 						bash ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out 2>&1 &
@@ -485,9 +484,9 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.
 		## Phasing Script Creation for HPC (Chr23/X)
 		## -------------------------------------------
 		
-			printf "\nProcessing X Chromosome Script \n"
+			printf "\n\nProcessing X Chromosome Script \n"
 			echo -----------------------------------
-			echo
+			
 		
 		#Search the reference directory for the chromosome specific reference map, legend, and hap files and create their respective variables on the fly
 		
@@ -526,13 +525,13 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz >
 		
 				if [ "${HPS_Submit,,}" == "t" ]; then
 		
-					echo
+					
 					echo Submitting Phasing script to HPC Queue
 					echo
 						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out -N PChr23_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
 						sleep 0.2
 				else
-					echo
+					
 					echo Submitting Phasing script to Desktop Queue
 					echo
 						bash ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out 2>&1 &
