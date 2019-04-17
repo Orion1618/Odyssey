@@ -127,6 +127,7 @@ Step 3a: Imputation
 2) Imputation is carried out using IMPUTE/Minimac recommended settings using reference data (genetic, hap, and map files) provided by either IMPUTE/Minimac (by default) or the user. The General IMPUTE/Minimac commands are listed below. Note that the reason why Impute4 is used is because it has superior speed in comparison to Impute2. Minimac is another imputation solution and is setup by default for users who do not need to utilize Impute's abilities to more accurately impute admixed datasets.
 		
 	a) impute4 -g [PhasedHapsFile]  -s [PhasedSampleFile] -m [ReferenceGeneticMapFile] -h [ReferenceHapsFile] -l [ReferenceLegendFile] -int [StartChromosomeChunkSegment EndChromosomeChunkSegment] -maf_align -Ne [20000] -o [OutputName]
+	
 	b) minimac4 --cpus [# cpus] --allTypedSites --minRatio 0.00001 --refHaps [ReferenceHapsFile] --haps [PhasedHapsFileFromSHAPEIT] --prefix [OutputName]
 	
 
