@@ -30,7 +30,7 @@
 	else
 
 		echo
-		echo User Input Not Recognized -- Please specify One or Two
+		echo User Input Not Recognized -- Please specify One or Two for OdysseySetup
 		echo Exiting Dependency Loading
 		echo
 		exit
@@ -204,6 +204,7 @@ if [ "${DownloadDefaultRefPanel,,}" == "t" ]; then
 						
 					
 				#Unpack
+				printf "\n\nUnpackaging Ref Panel \n--------------------------\n\n"
 					tar -xzf ${WorkingDir}Reference/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz -C ${WorkingDir}Reference/
 					${gzip_Exec} -dc < ${WorkingDir}Reference/genetic_map_hg19_withX.txt.gz > ${WorkingDir}Reference/genetic_map_hg19_withX.txt
 			
@@ -229,7 +230,7 @@ elif [ "${DownloadDefaultRefPanel,,}" == "f" ]; then
 	echo
 
 else
-	printf "Command Not Recognized Please Specify either T or F -- Exiting n\n"
+	printf "Command Not Recognized Please Specify either T or F for DownloadRefPanel -- Exiting \n\n"
 	exit
 fi
 
@@ -312,6 +313,9 @@ ${Shapeit2_Exec} \
 			fi
 	
 		done
+	elif [ "${PhaseAutosomes,,}" == "f" ]; then
+		printf "\n\n---Ok Will Not Phase the Autosomes---\n\n"
+	
 	fi
 
 
@@ -380,6 +384,8 @@ ${Shapeit2_Exec} \
 						sh ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out 2>&1 &
 				fi		
 			fi
+	elif [ "${PhaseX,,}" == "f" ]; then
+		printf "\n\n---Ok Will Not Phase the X Chromosome---\n\n"		
 	fi
 fi
 
@@ -471,6 +477,8 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.
 			fi
 	
 		done
+	elif [ "${PhaseAutosomes,,}" == "f" ]; then
+		printf "\n\n---Ok Will Not Phase the Autosomes---\n\n"
 	fi
 
 
@@ -537,6 +545,8 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz >
 						bash ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out 2>&1 &
 				fi		
 			fi
+	elif [ "${PhaseX,,}" == "f" ]; then
+		printf "\n\n---Ok Will Not Phase the X Chromosome---\n\n"
 	fi
 fi
 
