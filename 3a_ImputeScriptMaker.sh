@@ -600,7 +600,7 @@ echo "#!/bin/bash
 cd ${WorkingDir}
 
 # Minimac Manual Command Used to re-run autosomal imputation in case of failure
-	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out -N IChr${chr}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
+	# qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out -N IChr${chr}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
 
 # Convert Chr Phased haps to VCF
 
@@ -639,7 +639,7 @@ ${Minimac4_Exec} \
 							echo
 							echo Submitting Impute script to HPC Queue
 							echo
-							qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out -N IChr${chr}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
+							qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out -N IChr${chr}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
 						else
 					
 							echo
@@ -695,7 +695,7 @@ echo "#!/bin/bash
 cd ${WorkingDir}
 
 # Minimac Manual Command Used to re-run X chromosome imputation in case of failure
-	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out -N IChr23_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
+	# qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out -N IChr23_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
 
 # Convert Chr Phased haps to VCF
 
@@ -758,7 +758,7 @@ cd ${WorkingDir}
 					echo
 					echo Submitting Impute script to HPC Queue
 					echo
-					qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out -N IChr23_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
+					qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out -N IChr23_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
 				
 				elif [ "${HPS_Submit,,}" == "f" ]; then
 				
