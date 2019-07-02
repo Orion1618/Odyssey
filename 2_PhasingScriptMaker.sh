@@ -517,7 +517,7 @@ cd ${WorkingDir}
 	
 ${Eagle2_Exec} --bfile ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr23 \
 --geneticMapFile=./Reference/${GeneticMap} \
---outPrefix=./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased \
+-O ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.sample \
 --chrom 23 \
 --numThreads ${PhaseThreads}
 
