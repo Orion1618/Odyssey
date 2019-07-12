@@ -361,7 +361,7 @@ ${Shapeit2_Exec} \
 --chrX \
 --input-bed ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr23 \
 --input-map ./Reference/${XGeneticMap} \
---output-max ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz \
+-O ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23}_Phased.sample \
 --output-log ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.log" > ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
 	
 	

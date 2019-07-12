@@ -375,6 +375,8 @@ if  [ "${UseImpute,,}" == "t" ]; then
 			# Exports the BaseName variable so the child process can see it
 				export BaseName
 				export -f Concat
+				export gzip_Exec
+
 	
 			# GNU-Parallel Command: Takes all the chromosomal chunks and concatenates them in parallel
 				if [ "${GNU_ETA,,}" == "t" ]; then
@@ -734,6 +736,9 @@ if  [ "${UseImpute,,}" == "t" ]; then
 					echo 'Input not recognized for GNU_ETA -- specify either T or F'
 				
 				fi
+		
+
+
 	
 	
 		# =-=-=-=====================================================================================
@@ -953,15 +958,118 @@ if  [ "${UseImpute,,}" == "t" ]; then
 					printf " \n\nNo Chromosomal .gen.gz File Present for Chromosome ${chr} with which to filter and convert to a VCF.gz -- Skipping \n"
 				fi
 			done
+			
+
 		else
 			echo ERROR -- Specify Either T or F for Cleanup Variable
 		fi
+		
+		
+		
+		# TarGZ .snpstat/Out and INFOFiltered files
+		# -------------------------------------------
+			printf "\n\nTar and Zipping IMPUTE INFO score information\n"
+			echo -----------------------------------------------------
+		
+		
+		# TGZ the .snpstat files
+		# =======================
+			printf "\n\nTar-Zipping .snpstat files to ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetrics.tgz \n"
+			
+			# Are .snpstat files present to tgz?
+			if ls ./3_Impute/$BaseName/ConcatImputation/*.snpstat 1> /dev/null 2>&1; then
+			
+				# If .snpstat files are present does a corresponding tgz file already exist?
+				if ls ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsSummary.tgz 1> /dev/null 2>&1; then
+				
+				printf "\nFile Already Exists! What should I do? Checking Overwrite Settings...\n"
+				
+					# If they exist overwrite if on
+					if  [ "${OverwriteIfExist,,}" == "t" ]; then
+						printf "......Overwrite is ON so will overwrite\n"
+						${tar_Exec} -czvf ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsSummary.tgz ./3_Impute/$BaseName/ConcatImputation/*.snpstat
+					
+					# Do not overwrite if off
+					elif [ "${OverwriteIfExist,,}" == "f" ]; then
+						printf "......Overwrite is OFF so will skip\n"
+					else
+						printf "ERROR -- Specify Either T or F for OverwriteIfExist Variable"
+					fi
+				# If doesn't exist then make it
+				else
+					${tar_Exec} -czvf ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsSummary.tgz ./3_Impute/$BaseName/ConcatImputation/*.snpstat
+				fi
+			else
+				printf "\n-- No .snpstat files to Tar-zip --\n\n"
+			fi
+		
+		# TGZ the .snpstatOut files
+		# =======================		
+			printf "\n\nTar-Zipping .snpstatOut files to ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsMeta.tgz \n"
+			
+			# Are .snpstatOut files present to tgz?
+			if ls ./3_Impute/$BaseName/ConcatImputation/*.snpstatOut 1> /dev/null 2>&1; then
+			
+				# If .snpstatOut files are present does a corresponding tgz file already exist?
+				if ls ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsMeta.tgz 1> /dev/null 2>&1; then
+				
+					printf "\nFile Already Exists! What should I do? Checking Overwrite Settings\n"
+					
+					# If they exist overwrite if on
+					if  [ "${OverwriteIfExist,,}" == "t" ]; then
+						printf "......Overwrite is ON so will overwrite\n"
+						${tar_Exec} -czvf ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsMeta.tgz ./3_Impute/$BaseName/ConcatImputation/*.snpstatOut					
+					# Do not overwrite if off
+					elif [ "${OverwriteIfExist,,}" == "f" ]; then
+						printf "......Overwrite is OFF so will skip\n"
+					
+					else
+						printf "ERROR -- Specify Either T or F for OverwriteIfExist Variable"
+					fi
+				# If doesn't exist then make it
+				else
+					${tar_Exec} -czvf ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsMeta.tgz ./3_Impute/$BaseName/ConcatImputation/*.snpstatOut
+				fi
+			else
+				printf "\n-- No .snpstatOut files to Tar-zip --\n\n"
+			fi
+			
+		# TGZ the .INFOFiltered files
+		# =======================		
+			printf "\n\nTar-Zipping INFOFiltered files to ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsRaw.tgz \n"
+			
+			# Are INFOFiltered files present to tgz?
+			if ls ./3_Impute/$BaseName/ConcatImputation/INFOFiltered*.list 1> /dev/null 2>&1; then
+			
+				# If INFOFiltered files are present does a corresponding tgz file already exist?
+				if ls ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsFilteredRawValues.tgz 1> /dev/null 2>&1; then
+				
+				printf "\nFile Already Exists! What should I do? Checking Overwrite Settings\n"
+
+					# If they exist overwrite if on
+					if  [ "${OverwriteIfExist,,}" == "t" ]; then
+					
+						printf "......Overwrite is ON so will overwrite\n"
+						${tar_Exec} -czvf ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsFilteredRawValues.tgz ./3_Impute/$BaseName/ConcatImputation/INFOFiltered*.list
+					
+					# Do not overwrite if off
+					elif [ "${OverwriteIfExist,,}" == "f" ]; then
+						printf "......Overwrite is OFF so will skip\n\n"
+					else
+						printf "ERROR -- Specify Either T or F for OverwriteIfExist Variable"
+					fi
+				# If doesn't exist then make it
+				else
+					${tar_Exec} -czvf ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsFilteredRawValues.tgz ./3_Impute/$BaseName/ConcatImputation/INFOFiltered*.list
+				fi
+			else
+				printf "\n-- No INFOFiltered files to Tar-zip --\n\n"
+			fi
 	
 	elif [ "${Cleanup,,}" == "f" ]; then
 		echo
 		echo
 		echo ------ Skipping .GEN File Cleanup of IMPUTE4 Chromosomal .GEN Files ------
-		echo
 		echo
 		
 	else
@@ -982,52 +1090,89 @@ if  [ "${UseImpute,,}" == "t" ]; then
 		# Conditional statement to find if there are files to concatenate for the currently iterated chromosome
 			if ls ./3_Impute/${BaseName}/ConcatImputation/*.vcf.gz 1> /dev/null 2>&1; then
 	
-		# If there are .vcf.gz files to concatenate then list them (in order) on the screen
-			echo
-			printf "\n\n\nConcatenating the following VCF.gz files using BCFTools:"
-			echo ---------------------------------------------------
-			ls -1av ./3_Impute/${BaseName}/ConcatImputation/*.vcf.gz
-			echo ---------------------------------------------------
-			echo ...to ./3_Impute/${BaseName}/ConcatImputation/Imputed_${BaseName}_Merged.vcf.gz
-			echo
+			# If there are .vcf.gz files to concatenate then list them (in order) on the screen
+				echo
+				printf "\n\n\nConcatenating the following VCF.gz files using BCFTools:\n"
+				echo ---------------------------------------------------
+				ls -1av ./3_Impute/${BaseName}/ConcatImputation/${BaseName}*.vcf.gz
+				echo ---------------------------------------------------
+				echo ...to ./3_Impute/${BaseName}/ConcatImputation/Imputed_${BaseName}_Merged.vcf.gz
+				echo
 		
-		# Set List entries as a variable
-			VCF2Merge="$(find ./3_Impute/${BaseName}/ConcatImputation/ -maxdepth 1 -type f -name "*.vcf.gz" |sort -V)"
-	
-		# Use BCFTools to Merge the VCF Files Listed in the variable
-			${bcftools} concat --threads ${ConcatThreads} ${VCF2Merge} --output-type z --output ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz
-	
-		# Change Permission so the cat script can access it
-			chmod -f 700 ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz || true
-			
-	
-	# Otherwise if there are no files to concatenate for the currently iterated chromosome then say so	
-			else
+			# Set List entries as a variable
+				VCF2Merge="$(find ./3_Impute/${BaseName}/ConcatImputation/ -maxdepth 1 -type f -name "*.vcf.gz" |sort -V)"
+		
+			# Conditional Statement to look to see if a BCFTools merged VCF File is already present
+				if ls ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz 1> /dev/null 2>&1; then
 				
-				printf "\nNo VCF.gz Files for BCFTools to Concatenate\n\n"
+				printf "\nFile Already Exists! What should I do? Checking Overwrite Settings...\n"
+				# If the file exists and overwrite is set to false, then skip the list creation
+					if  [ "${OverwriteIfExist,,}" == "f" ]; then
 					
+						printf "......Overwrite is OFF so will skip\n"
+						
+				# If the file exists and overwrite is set to true, then overwrite it
+					elif  [ "${OverwriteIfExist,,}" == "t" ]; then
+						printf "......Overwrite is ON so will overwrite\n"
+							
+
+						# Use BCFTools to Merge the VCF Files Listed in the variable
+							${bcftools} concat --threads ${ConcatThreads} ${VCF2Merge} --output-type z --output ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz
+		
+						# Change Permission so the cat script can access it
+							chmod -f 700 ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz || true
+					
+					else
+						echo ERROR -- Specify Either T or F for OverwriteIfExist Variable
+					fi
+				else	
+					# If does not yet exist then perform the merge to make one
+						# Use BCFTools to Merge the VCF Files Listed in the variable
+							${bcftools} concat --threads ${ConcatThreads} ${VCF2Merge} --output-type z --output ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz
+		
+						# Change Permission so the cat script can access it
+							chmod -f 700 ./3_Impute/${BaseName}/ConcatImputation/1Imputed__${BaseName}_Merged.vcf.gz || true
+				fi
+
+		# Otherwise if there are no files to concatenate for the currently iterated chromosome then say so	
+			else
+				printf "\n-- No VCF.gz Files for BCFTools to Concatenate --\n\n"
 			fi
+		
 	
-	elif [ "${MergeVCF,,}" == "t" ]; then
-		printf "\n\n\n------ Skipping the Merging of Impute4 Chromosomal VCFs to a Single VCF ------\n\n"
+	elif [ "${MergeVCF,,}" == "f" ]; then
+		printf "\n------ Skipping the Merging of Impute4 Chromosomal VCFs to a Single VCF ------\n\n"
 	
 	else
-		printf "\n\nERROR -- Specify Either T or F for MergeVCF Variable\n\n"
+		printf "\nERROR -- Specify Either T or F for MergeVCF Variable\n\n"
 					
 	fi
 	
-	
-	# Remove Temporary Files to Save Space
+# -------------------------------------	
+# Remove Temporary Files to Save Space
+# -------------------------------------
 		
 	if [ "${RmTemp,,}" == "t" ]; then	
 	
-		printf "\n\nRemoving Temporary Files\n"
-		echo ---------------------------------------
-		echo
-		echo
+	echo --------------------------------
+	printf "Tidying Up\n"
+	echo ================================	
+	
 			# Delete Raw Imputation Files
-			if [ -d ./3_Impute/$BaseName/RawImputation/ ]; then  rm -r ./3_Impute/$BaseName/RawImputation/; fi
-			rm -r ./3_Impute/$BaseName/ConcatImputation/*.temp
+				printf "\n\nDelete Raw Imputation Folder and Redundant Temp Files\n"
+				echo ------------------------------------------------------------------------------
+				if [ -d ./3_Impute/$BaseName/RawImputation/ ]; then  rm -r ./3_Impute/$BaseName/RawImputation/; fi
+				rm -r ./3_Impute/$BaseName/ConcatImputation/*.temp
+				rm -r ./3_Impute/$BaseName/ConcatImputation/$BaseName*Chr*.vcf.gz
+
+			# Then Remove leftover .snpstat/Out and INFOFiltered files if corresponding tgz file exists
+				printf "\n\nRemoving leftover .snpstat files if corresponding .tgz is already made\n"
+				echo ------------------------------------------------------------------------------
+				if [ -f ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsSummary.tgz ]; then  rm -r ./3_Impute/$BaseName/ConcatImputation/*.snpstat; fi
+				if [ -f ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsMeta.tgz ]; then  rm -r ./3_Impute/$BaseName/ConcatImputation/*.snpstatOut; fi
+				if [ -f ./3_Impute/$BaseName/ConcatImputation/${BaseName}_INFOMetricsFilteredRawValues.tgz ]; then  rm -r ./3_Impute/$BaseName/ConcatImputation/INFOFiltered*; fi
+				
+				
 	else
 		
 		printf "\n\nKeeping Temporary Files\n"
@@ -1035,8 +1180,10 @@ if  [ "${UseImpute,,}" == "t" ]; then
 		echo
 		echo
 	fi
-	
-	# Super Clean to Remove all but the bare bones
+
+# ----------------------------------------------
+# Super Clean to Remove all but the bare bones
+# ----------------------------------------------
 		
 	if [ "${SuperClean,,}" == "t" ]; then	
 	
@@ -1045,8 +1192,9 @@ if  [ "${UseImpute,,}" == "t" ]; then
 		echo
 		echo
 			# Delete Raw Imputation Files
-			rm -r ./3_Impute/$BaseName/ConcatImputation/*.snpstat
-			rm -r ./3_Impute/$BaseName/ConcatImputation/$BaseName*Chr*.vcf.gz
+			#rm -r ./3_Impute/$BaseName/ConcatImputation/*.snpstat.gz
+			rm -r ./3_Impute/$BaseName/ConcatImputation/$BaseName*Chr*.gen.gz
+
 	fi
 	
 # =-=-=-=-=-==============================================================================================
@@ -1295,13 +1443,12 @@ elif [ "${UseMinimac,,}" == "t" ]; then
 	
 		# If there are .vcf.gz files to concatenate then list them (in order) on the screen
 			echo
-			printf "\n\n\nConcatenating the following VCF.gz files using BCFTools:"
+			printf "\nConcatenating the following VCF.gz files using BCFTools:\n"
 			echo ---------------------------------------------------
 			ls -1av ./3_Impute/${BaseName}/ConcatImputation/*.vcf.gz
 			echo ---------------------------------------------------
 			echo ...to ./3_Impute/${BaseName}/ConcatImputation/Imputed_${BaseName}_Merged.vcf.gz
-			echo
-		
+					
 		# Set List entries as a variable
 			VCF2Merge="$(find ./3_Impute/${BaseName}/ConcatImputation/ -maxdepth 1 -type f -name "*.vcf.gz" |sort -V)"
 	
@@ -1320,23 +1467,24 @@ elif [ "${UseMinimac,,}" == "t" ]; then
 			fi
 	
 	elif [ "${MergeVCF,,}" == "f" ]; then
-		printf "\n\n\n------ Skipping the Merging of Impute4 Chromosomal VCFs to a Single VCF ------\n\n"
+		printf "\n------ Skipping the Merging of Impute4 Chromosomal VCFs to a Single VCF ------\n\n"
 	
 	else
-		printf "\n\nERROR -- Specify Either T or F for MergeVCF Variable\n\n"
+		printf "\nERROR -- Specify Either T or F for MergeVCF Variable\n\n"
 					
 	fi			
 	
 	
 	# Remove Temporary Files to Save Space
-	if [ "${RmTemp,,}" == "t" ]; then	
-	
-		printf "\n\nRemoving Temporary Files\n"
-		echo ---------------------------------------
-		echo
-		echo
-			# Delete Raw Imputation Files
-			if [ -d ./3_Impute/$BaseName/RawImputation/ ]; then  rm -r ./3_Impute/$BaseName/RawImputation/; fi
+	if [ "${RmTemp,,}" == "t" ]; then
+
+	echo --------------------------------
+	printf "Tidying Up\n"
+	echo ================================	
+
+		# Delete Raw Imputation Files
+		if [ -d ./3_Impute/$BaseName/RawImputation/ ]; then rm -r ./3_Impute/$BaseName/RawImputation/; fi
+
 	else
 		
 		printf "\n\nKeeping Temporary Files\n"
@@ -1354,8 +1502,8 @@ elif [ "${UseMinimac,,}" == "t" ]; then
 		echo
 		echo
 			# Delete Raw Imputation Files
-			#rm -r ./3_Impute/$BaseName/ConcatImputation/*.snpstat
-			#rm -r ./3_Impute/$BaseName/ConcatImputation/$BaseName*Chr*.vcf.gz
+			#rm -r ./3_Impute/$BaseName/ConcatImputation/*.snpstat.gz
+			rm -r ./3_Impute/$BaseName/ConcatImputation/$BaseName*Chr*.vcf.gz
 	fi
 		
 
