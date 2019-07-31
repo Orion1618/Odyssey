@@ -17,12 +17,15 @@
 	args[13]->GWASPhenoName
 	args[14]->GWAS_Threads
 	args[15]->GWASRunName
-	args[16]->BaseName
+	args[16]->GWASDatasetName
 	args[17]->Pheno_File
 	args[18]->VCF_Input
 	
 	
 	'plink2'->plink
+	
+	# Need to make Plink Memory request just a bit smaller than the HPC/Desktop Memory Total
+		ActualGWAS_Memory <- as.numeric(GWAS_Memory)-2
 	
 	#args
 
@@ -49,9 +52,9 @@ if (VCF2PGEN=="T" || VCF2PGEN=="t")
 		cat("\n\nConverting VCF to Plink Dosage PGEN:\n")
 		cat("============================================\n")
 		
-		system(paste0("time ", plink, " --vcf ", VCF_Input, " --id-delim _ --update-sex ", Sex_Input, " col-num=5 --memory ",GWAS_Memory, "000 require --make-pgen --out ./4_GWAS/Datasets/", BaseName))
+		system(paste0(plink, " --vcf ", VCF_Input, " --id-delim _ --update-sex ", Sex_Input, " col-num=5 --memory ",ActualGWAS_Memory, "000 --make-pgen --out ./4_GWAS/Datasets/", GWASDatasetName))
 
-		#time plink --vcf ${VCF_Input} --id-delim _ --update-sex ${Sex_Input} col-num=5 --memory GWAS_Memory000 require --make-pgen --out ./4_GWAS/Datasets/${BaseName}
+		#plink --vcf ${VCF_Input} --id-delim _ --update-sex ${Sex_Input} col-num=5 --memory ActualGWAS_Memory000 require --make-pgen --out ./4_GWAS/Datasets/${GWASDatasetName}
 		
 	} else if (VCF2PGEN=="F" || VCF2PGEN=="f") {
 		# Do Not Convert VCF to Plink Dosage PGEN
@@ -75,10 +78,10 @@ if (VCF2PGEN=="T" || VCF2PGEN=="t")
 	cat("================================\n")
 	
 	# Check PGEN file is present
-		PGEN_Check <- file_test("-f", paste0("./4_GWAS/Datasets/", BaseName, ".pgen"))
+		PGEN_Check <- file_test("-f", paste0("./4_GWAS/Datasets/", GWASDatasetName, ".pgen"))
 		cat(paste("\nChecking for PGEN existence in Dataset Folder:", PGEN_Check, "\n"))
 		cat("--------------------------------------------------\n")
-		paste0("./4_GWAS/Datasets/", BaseName, ".pgen")
+		paste0("./4_GWAS/Datasets/", GWASDatasetName, ".pgen")
 	
 	# Check PHENO file is present
 		Pheno_Check <-file_test("-f", paste0("./4_GWAS/Phenotype/", Pheno_File))
@@ -104,13 +107,13 @@ if (PGEN_Check == "TRUE" && Pheno_Check == "TRUE" && Sex_Check == "TRUE")
 	# ------------------
 	
 	# Set PGEN path as variable
-		PGEN_FILE_PATH <- paste0("./4_GWAS/Datasets/", BaseName)
+		PGEN_FILE_PATH <- paste0("./4_GWAS/Datasets/", GWASDatasetName)
 	
 	# Set Pheno path as variable
 		PHENO_FILE_PATH <- paste0("./4_GWAS/Phenotype/", Pheno_File)
 		
 	# Run GWAS using all the variables specified in Settings.conf
-		system(paste0(plink, " --pfile ", PGEN_FILE_PATH, " --pheno ",PHENO_FILE_PATH, " --pheno-name ", GWASPhenoName, " ", PLINK_OPTIONS, " --threads ", GWAS_Threads, " --memory ", GWAS_Memory, "000 require --out ", GWASSubDir, "/", GWASRunName))
+		system(paste0(plink, " --pfile ", PGEN_FILE_PATH, " --pheno ",PHENO_FILE_PATH, " --pheno-name ", GWASPhenoName, " ", PLINK_OPTIONS, " --threads ", GWAS_Threads, " --memory ", ActualGWAS_Memory, "000 --out ", GWASSubDir, "/", GWASRunName))
 	cat("\n=================================================\n\n\n")
 	
 # ========================================
@@ -231,12 +234,12 @@ cat("=================================================\n")
 
 		system(paste0('gzip ', getwd(), '/', ResultsOutputFile))
 		
-	# Move GWAS Results into 5_QuickResults Folder -- create the directory from the BaseName variable if one does not yet exist
+	# Move GWAS Results into 5_QuickResults Folder -- create the directory from the GWASDatasetName variable if one does not yet exist
 		cat('\nCopying Results to 5_QuickResults Folder\n')
 		cat('-------------------------------------------\n\n')
 		
-		system(paste0('mkdir -p ', WorkingDir, '5_QuickResults/', BaseName, '/GWAS_Results/', GWASRunName, '/'))
-		system(paste0('cp -R ', GWASSubDir, '/', ' ', WorkingDir, '5_QuickResults/', BaseName, '/GWAS_Results/', GWASRunName, '/'))
+		system(paste0('mkdir -p ', WorkingDir, '5_QuickResults/', GWASDatasetName, '/GWAS_Results/', GWASRunName, '/'))
+		system(paste0('cp -R ', GWASSubDir, '/', ' ', WorkingDir, '5_QuickResults/', GWASDatasetName, '/GWAS_Results/', GWASRunName, '/'))
 
 		cat('\nFinished with Data Analysis -- Visualization!\n\n')
 

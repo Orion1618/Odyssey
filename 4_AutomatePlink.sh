@@ -115,7 +115,7 @@ Arg12="${PLINK_OPTIONS}";
 Arg13="${GWASPhenoName}";
 Arg14="${GWAS_Threads}";
 Arg15="${GWASRunName}";
-Arg16="${BaseName}";
+Arg16="${GWASDatasetName}";
 Arg17="${Pheno_File}";
 # Arg18 can be blank if not converting from a VCF to a PGEN
 Arg18="${VCF_Input}";
@@ -150,13 +150,13 @@ if [ "${ExecuteGWASScripts,,}" == "t" ]; then
 			echo
 			echo Submitting GWAS script to HPC Queue
 			echo
-				qsub -l nodes=1:ppn=${GWAS_Threads},vmem=${GWAS_Memory}gb,walltime=${GWAS_Walltime} -M ${Email} -m ae -j oe -o ${GWASSubDir}/GWASRunName.out1 -N ${GWASRunName} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
+				qsub -l nodes=1:ppn=${GWAS_Threads},vmem=${GWAS_Memory}gb,walltime=${GWAS_Walltime} -M ${Email} -m ae -j oe -o ${GWASSubDir}/${GWASRunName}.out1 -N ${GWASRunName} ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 
 		elif [ "${HPS_Submit,,}" == "f" ]; then
 			echo
 			echo Submitting GWAS script to Desktop Queue
 			echo
-				sh ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
+				bash ${GWASSubDir}/1_${GWASRunName}_Analyze-Visualize.sh
 				
 		else
 				echo
